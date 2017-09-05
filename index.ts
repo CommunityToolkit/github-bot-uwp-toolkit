@@ -52,13 +52,27 @@ const tests = {
     'issues': {
         'should detect if there was no response from the community after a period of time': (issue) => {
             if (issue.state !== 'closed') {
-                // TODO : check if there is only one user who write a message (the creator of the message)
+                // check if there is only one user who write a message (the creator of the message)
+                const loginsOfAuthors: string[] = issue.comments.map(c => c.user.login);
+                const issueHasNoResponse = distinct(loginsOfAuthors.filter(c => c !== issue.user.login)).length === 0;
 
-                // TODO : check if the issue contains an exclusive labels (only issues without those labels are usable)
+                if (issueHasNoResponse) {
+                    // check if the issue contains an exclusive labels (only issues without those labels are usable)
+                    const containsExclusiveLabels = issue.labels.filter(label => {
+                        return exclusiveLabels.some(l => l === label.name);
+                    }).length > 0;
 
-                // TODO : check if the first message was sent 7 days ago
+                    if (!containsExclusiveLabels) {
+                        // check if the first message was sent 7 days ago
+                        const firstComment = issue.comments[0];
+                        const today = new Date();
 
-                // TODO : send a message with a ping to the team
+                        if (new Date(firstComment.created_at) < addDays(today, -7)) {
+                            // send a message with a ping to the team
+                            issue.comment(`No reponse from the community. ping @nmetulev`);
+                        }
+                    }
+                }
             }
         },
 
