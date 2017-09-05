@@ -1,4 +1,5 @@
 import haunt = require('haunt');
+import cron = require('node-cron');
 
 const botUsername = 'user'; // TODO : use env variables
 const exclusiveLabels = ['PR in progress', 'work in progress'];
@@ -150,6 +151,8 @@ const tests = {
     }
 }
 
-// TODO : execute CRON task
-// TODO : use env variables
-start(botUsername, 'pass', 'http://github.com/my/repo', tests);
+// execute CRON task every hour
+cron.schedule('0 * * * *', () => {
+    // TODO : use env variables
+    start(botUsername, 'pass', 'http://github.com/my/repo', tests);
+});
