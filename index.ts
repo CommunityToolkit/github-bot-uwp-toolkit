@@ -20,9 +20,9 @@ const distinct = (array: any[]): any[] => {
     });
 }
 
-const takeLastThree = (array: any[]): any[] => {
+const takeLast = (array: any[], occurences: number): any[] => {
     return array.filter((_, i, a) => {
-        return i >= a.length - 3;
+        return i >= a.length - occurences;
     });
 }
 
@@ -69,7 +69,7 @@ const tests = {
 
                         if (new Date(firstComment.created_at) < addDays(today, -7)) {
                             // send a message with a ping to the team
-                            issue.comment(`No reponse from the community. ping @nmetulev`);
+                            issue.comment(`No response from the community. ping @nmetulev`);
                         }
                     }
                 }
@@ -96,8 +96,8 @@ const tests = {
                         if (new Date(lastComment.updated_at) < addDays(today, -7)) {
                             // less than 3 messages or
                             // check if last messages of the issue contains less than 2 successive messages of the bot
-                            const lastThreeMessages = takeLastThree(issue.comments);
-                            const reminderMessagesFromBot = lastThreeMessages.filter(c => {
+                            const lastTwoMessages = takeLast(issue.comments, 2);
+                            const reminderMessagesFromBot = lastTwoMessages.filter(c => {
                                 return (c.user.login === botUsername && c.body.indexOf('This issue seems inactive') > -1);
                             });
 
@@ -113,17 +113,38 @@ const tests = {
             }
         },
 
-        'should close the issue after 3 successive alerts': (issue) => {
+        'should close inactive issue after 3 successive alerts': (issue) => {
             if (issue.state !== 'closed') {
-                // TODO : check if at least two users write a message
+                // check if at least two users write a message (one user other than the author)
+                const loginsOfAuthors: string[] = issue.comments.map(c => c.user.login);
+                const issueHasResponse = distinct(loginsOfAuthors.filter(c => c !== issue.user.login)).length > 0;
 
-                // TODO : check if the issue contains an exclusive labels (only issues without those labels are usable)
+                if (issueHasResponse) {
+                    // check if the issue contains an exclusive labels (only issues without those labels are usable)
+                    const containsExclusiveLabels = issue.labels.filter(label => {
+                        return exclusiveLabels.some(l => l === label.name);
+                    }).length > 0;
 
-                // TODO : check if last message was sent 7 days ago
+                    if (!containsExclusiveLabels) {
+                        // check if last message was sent 7 days ago
+                        const lastComment = issue.comments[issue.comments.length - 1];
+                        const today = new Date();
 
-                // TODO : check if last messages of the issue contains exactly 2 successive messages of the bot
+                        if (new Date(lastComment.updated_at) < addDays(today, -7)) {
+                            // check if last messages of the issue contains exactly 2 successive messages of the bot
+                            const lastTwoMessages = takeLast(issue.comments, 2);
+                            const reminderMessagesFromBot = lastTwoMessages.filter(c => {
+                                return (c.user.login === botUsername && c.body.indexOf('This issue seems inactive') > -1);
+                            });
 
-                // TODO : close issue and send a message that issue got no answer from the creator
+                            if (reminderMessagesFromBot.length === 2) {
+                                // close issue and send a message that issue got no answer from the creator
+                                issue.close();
+                                issue.comment('Issue is inactive. It was automatically closed.');
+                            }
+                        }
+                    }
+                }
             }
         }
     }
