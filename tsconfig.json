@@ -1,0 +1,16 @@
+{
+    "compileOnSave": true,
+    "compilerOptions": {
+      "allowUnreachableCode": false,
+      "alwaysStrict": true,
+      "noEmitOnError": true,
+      "noFallthroughCasesInSwitch": true,
+      "noImplicitReturns": true,
+      "noUnusedLocals": true,
+      "noUnusedParameters": true,
+      "removeComments": true,
+      "sourceMap": true,
+      "target": "es5"
+    },
+    "exclude": [ "node_modules" ]
+  }

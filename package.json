@@ -1,0 +1,7 @@
+{
+  "name": "github-bot-uwp-toolkit",
+  "version": "0.1.0",
+  "dependencies": {
+    "haunt": "^1.1.0"
+  }
+}
