@@ -4,5 +4,8 @@
   "dependencies": {
     "haunt": "^1.1.0",
     "node-cron": "^1.2.1"
+  },
+  "devDependencies": {
+    "@types/node": "^8.0.26"
   }
 }

@@ -1,7 +1,7 @@
 import haunt = require('haunt');
 import cron = require('node-cron');
 
-const botUsername = 'user'; // TODO : use env variables
+const botUsername = process.env.GITHUB_BOT_UWP_TOOLKIT_USERNAME;
 const exclusiveLabels = ['PR in progress', 'work in progress'];
 
 const start = (username: string, password: string, repositoryUrl: string, tests: any) => {
@@ -153,6 +153,5 @@ const tests = {
 
 // execute CRON task every hour
 cron.schedule('0 * * * *', () => {
-    // TODO : use env variables
-    start(botUsername, 'pass', 'http://github.com/my/repo', tests);
+    start(botUsername, process.env.GITHUB_BOT_UWP_TOOLKIT_PASSWORD, process.env.GITHUB_BOT_UWP_TOOLKIT_REPOSITORY, tests);
 });
