@@ -153,5 +153,7 @@ const tests = {
 
 // execute CRON task every hour
 cron.schedule('0 * * * *', () => {
+    console.log('start task');
     start(botUsername, process.env.GITHUB_BOT_UWP_TOOLKIT_PASSWORD, process.env.GITHUB_BOT_UWP_TOOLKIT_REPOSITORY, tests);
 });
+console.log('schedule created');
