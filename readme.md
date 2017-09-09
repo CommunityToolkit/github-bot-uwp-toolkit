@@ -13,7 +13,7 @@ Bot written in node.js to manage issues and Pull Requests of UWP Community Toolk
 
 These environment variables should be set to launch the bot.
 
-|||
+| Variable | Description |
 |-|-|
 | GITHUB_BOT_UWP_TOOLKIT_USERNAME       | Username of the GitHub account of the bot |
 | GITHUB_BOT_UWP_TOOLKIT_ACCESS_TOKEN   | Personal Access Token used to retrieve data from the GitHub API |
