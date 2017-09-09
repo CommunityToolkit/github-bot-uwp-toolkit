@@ -48,6 +48,29 @@ type IssueNode = {
     };
 }
 
+type PullRequestNode = {
+    id: string;
+    comments: {
+        edges: {
+            node: {
+                author: {
+                    login: string
+                },
+                body: string
+            }
+        }[];
+    };
+}
+
+type IssueOrPullRequestLinkNode = {
+    __typename: 'Issue';
+    id: string;
+    number: number;
+    closed: boolean;
+} | {
+        __typename: 'PullRequest';
+    };
+
 // GitHub Api calls
 
 const closeGitHubIssue = (headers: any, issueId: string) => {
@@ -157,6 +180,81 @@ const getGitHubIssuesQuery = (repoOwner: string, repoName: string, afterCursor?:
       }`;
 }
 
+const getAllMergedPullRequestsRecursively = (headers: any, repoOwner: string, repoName: string, afterCursor: string, callback: (prs: PullRequestNode[]) => any) => {
+    performGitHubGraphqlRequest(headers, {
+        query: getMergedPullRequestsQuery(repoOwner, repoName, afterCursor)
+    }, (response) => {
+        if (response.data.repository.pullRequests.pageInfo.hasNextPage) {
+            getAllMergedPullRequestsRecursively(headers, repoOwner, repoName, response.data.repository.pullRequests.pageInfo.endCursor, (pullRequests) => {
+                callback(pullRequests.concat(response.data.repository.pullRequests.edges.map(edge => edge.node)));
+            });
+        } else {
+            callback(response.data.repository.pullRequests.edges.map(edge => edge.node));
+        }
+    });
+}
+
+const getMergedPullRequestsQuery = (repoOwner: string, repoName: string, afterCursor?: string): string => {
+    return `
+      query { 
+        repository(owner: "${repoOwner}", name: "${repoName}") { 
+          pullRequests(states: [MERGED], first: 50${!!afterCursor ? `, after: "${afterCursor}"` : ''}) {
+            pageInfo {
+              hasNextPage,
+              endCursor
+            },
+            edges {
+              node {
+                id,
+                comments(first: 100) {
+                  edges {
+                    node {
+                      author {
+                        login
+                      },
+                      body
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }`;
+}
+
+const getIssueOrPullRequestLinks = (headers: any, repoOwner: string, repoName: string, numbers: number[], callback: (nodes: IssueOrPullRequestLinkNode[]) => any) => {
+    performGitHubGraphqlRequest(headers, {
+        query: getIssueOrPullRequestLinksQuery(repoOwner, repoName, numbers)
+    }, (response) => {
+        const results = numbers.map((_, index) => response.data.repository['result' + index]);
+        callback(results);
+    });
+}
+
+const getIssueOrPullRequestLinksQuery = (repoOwner: string, repoName: string, numbers: number[]) => {
+    const resultList = numbers
+        .map((n, index) => {
+            return `
+              result${index}: issueOrPullRequest(number: ${n}) {
+                __typename
+                ... on Issue {
+                  id,
+                  number,
+                  closed
+                }
+              }`;
+        })
+        .join(',');
+
+    return `
+      query {
+        repository(owner: "${repoOwner}", name: "${repoName}") {
+          ${resultList}
+        }
+      }`;
+}
+
 const performGitHubGraphqlRequest = (headers: any, data: any, success?: (response: any) => any) => {
     performHttpRequest('api.github.com', '/graphql', 'POST', headers, data, success);
 }
@@ -221,11 +319,49 @@ const addDays = (date: Date, days: number): Date => {
 
 // Bot logic
 
-// pull-requests - TODO : should send a message of linked non-closed issues when a PR is merged
-// TODO : only merged PR
-// TODO : do not send a new message if one has already been added
-// TODO : check if there are unclosed issues linked to the PR
-// TODO : send a message with links to unclosed issues
+const searchLinkedItemsNumbersInComment = (message: string): number[] => {
+    const matches = message.match(/[#][0-9]+/g);
+
+    if (matches) {
+        return matches.map(m => parseInt(m.trim().substr(1)));
+    }
+    return [];
+}
+
+// pull-requests - should send a message of linked non-closed issues when a PR is merged
+const sendMessageWithLinkedNonClosedIssuesForMergedPullRequest = (githubApiHeaders: any, botUsername: string, repoOwner: string, repoName: string, pullRequest: PullRequestNode) => {
+    // do not send a new message if one has already been added
+    const hasAlreadyGotTheMessage = pullRequest.comments.edges.map(edge => edge.node).filter(c => {
+        return (c.author.login === botUsername && c.body.indexOf('This PR is linked to unclosed issues.') > -1);
+    }).length > 0;
+
+    if (!hasAlreadyGotTheMessage) {
+        // check if there are linked items (issues/prs) to the PR (analyze text of PR comments)
+        const linkedItemsNumbers = pullRequest.comments.edges.map(edge => edge.node)
+            .map(c => {
+                return searchLinkedItemsNumbersInComment(c.body);
+            })
+            .reduce((a, b) => a.concat(b), []);
+        const distinctLinkedItemsNumbers = distinct(linkedItemsNumbers);
+
+        if (distinctLinkedItemsNumbers.length > 0) {
+            // check what issues are closed
+            getIssueOrPullRequestLinks(githubApiHeaders, repoOwner, repoName, distinctLinkedItemsNumbers, (results) => {
+                const unclosedIssuesNumber = results
+                    .filter(r => r.__typename === 'Issue' && r.closed === false)
+                    .map(r => r.__typename === 'Issue' ? r.number : null)
+                    .filter(n => !!n);
+
+                // send a message with links to unclosed issues
+                const linkedItemsMessagePart = unclosedIssuesNumber.map(n => '#' + n).join(', ');
+                commentGitHubIssue(
+                    githubApiHeaders,
+                    pullRequest.id,
+                    `This PR is linked to unclosed issues. Please check if one of these issues should be closed: ${linkedItemsMessagePart}`);
+            });
+        }
+    }
+}
 
 // issues - should detect if there was no response from the community after a period of time
 const detectIfNoResponseFromCommunity = (githubApiHeaders: any, issue: IssueNode, exclusiveLabels: string[]) => {
@@ -343,6 +479,13 @@ const start = (username: string, personalAccessToken: string, repoOwner: string,
             detectIfNoResponseFromCommunity(githubApiHeaders, issue, exclusiveLabels);
             sendReminderAfterAPeriodOfTime(githubApiHeaders, username, issue, exclusiveLabels);
             closeInactiveIssueAfterThreeSuccessiveAlerts(githubApiHeaders, username, issue, exclusiveLabels);
+
+            // TODO : only load the last 50 merged PR to reduce time
+            getAllMergedPullRequestsRecursively(githubApiHeaders, repoOwner, repoName, null, (pullRequests) => {
+                pullRequests.forEach(pr => {
+                    sendMessageWithLinkedNonClosedIssuesForMergedPullRequest(githubApiHeaders, username, repoOwner, repoName, pr);
+                });
+            });
         })
     });
 }
