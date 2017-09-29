@@ -1,9 +1,7 @@
 {
   "name": "github-bot-uwp-toolkit",
   "version": "0.1.0",
-  "dependencies": {
-    "node-cron": "^1.2.1"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@types/node": "^8.0.26"
   }

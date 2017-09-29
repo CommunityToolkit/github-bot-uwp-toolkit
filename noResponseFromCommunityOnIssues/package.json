@@ -1,0 +1,5 @@
+{
+    "name": "no-response-from-community-on-issues",
+    "version": "0.0.1",
+    "description": "Check if there was no response from the community on a GitHub issue"
+}
