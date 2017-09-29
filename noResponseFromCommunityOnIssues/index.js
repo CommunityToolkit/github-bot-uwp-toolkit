@@ -12,9 +12,11 @@ module.exports = function (context) {
         var issuesWithoutResponse = issues.filter(function (issue) {
             return detectIfNoResponseFromCommunity(issue, exclusiveLabels);
         });
-        issuesWithoutResponse.forEach(function (issue) {
-            github_1.commentGitHubIssue(githubApiHeaders, issue.id, "No response from the community. ping @nmetulev");
-        });
+        if (process.env.GITHUB_BOT_UWP_TOOLKIT_ACTIVATE_MUTATION) {
+            issuesWithoutResponse.forEach(function (issue) {
+                github_1.commentGitHubIssue(githubApiHeaders, issue.id, "No response from the community. ping @nmetulev");
+            });
+        }
         context.done(null, issuesWithoutResponse);
     });
 };

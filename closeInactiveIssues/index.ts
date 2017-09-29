@@ -42,27 +42,29 @@ module.exports = (context) => {
                 }
             });
 
-            // send new alerts if it was that decision
-            decisions.filter(d => d.decision === 'alert').forEach(d => {
-                // send a message to the creator that issue will be close in X days
-                const daysBeforeClosingIssue = 7 * (2 - d.numberOfAlertsAlreadySent);
+            if (process.env.GITHUB_BOT_UWP_TOOLKIT_ACTIVATE_MUTATION) {
+                // send new alerts if it was that decision
+                decisions.filter(d => d.decision === 'alert').forEach(d => {
+                    // send a message to the creator that issue will be close in X days
+                    const daysBeforeClosingIssue = 7 * (2 - d.numberOfAlertsAlreadySent);
 
-                commentGitHubIssue(
-                    githubApiHeaders,
-                    d.issue.id,
-                    `This issue seems inactive. It will automatically be closed in ${daysBeforeClosingIssue} days if there is no activity.`);
-            });
+                    commentGitHubIssue(
+                        githubApiHeaders,
+                        d.issue.id,
+                        `This issue seems inactive. It will automatically be closed in ${daysBeforeClosingIssue} days if there is no activity.`);
+                });
 
-            // close issue if it was that decision
-            decisions.filter(d => d.decision === 'close').forEach(d => {
-                // close issue and send a message that issue got no answer from the creator
-                commentGitHubIssue(
-                    githubApiHeaders,
-                    d.issue.id,
-                    'Issue is inactive. It was automatically closed.');
+                // close issue if it was that decision
+                decisions.filter(d => d.decision === 'close').forEach(d => {
+                    // close issue and send a message that issue got no answer from the creator
+                    commentGitHubIssue(
+                        githubApiHeaders,
+                        d.issue.id,
+                        'Issue is inactive. It was automatically closed.');
 
-                closeGitHubIssue(githubApiHeaders, d.issue.id);
-            });
+                    closeGitHubIssue(githubApiHeaders, d.issue.id);
+                });
+            }
 
             context.done(null, decisions);
         });

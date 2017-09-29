@@ -15,7 +15,8 @@ These environment variables should be set to launch the bot.
 
 | Variable | Description |
 |-|-|
-| GITHUB_BOT_UWP_TOOLKIT_USERNAME       | Username of the GitHub account of the bot |
-| GITHUB_BOT_UWP_TOOLKIT_ACCESS_TOKEN   | Personal Access Token used to retrieve data from the GitHub API |
-| GITHUB_BOT_UWP_TOOLKIT_REPO_OWNER     | Target Repository owner (should be "Microsoft") |
-| GITHUB_BOT_UWP_TOOLKIT_REPO_NAME      | Target Repository name (should be "UWP Community Toolkit") |
+| GITHUB_BOT_UWP_TOOLKIT_USERNAME               | Username of the GitHub account of the bot |
+| GITHUB_BOT_UWP_TOOLKIT_ACCESS_TOKEN           | Personal Access Token used to retrieve data from the GitHub API |
+| GITHUB_BOT_UWP_TOOLKIT_REPO_OWNER             | Target Repository owner (should be "Microsoft") |
+| GITHUB_BOT_UWP_TOOLKIT_REPO_NAME              | Target Repository name (should be "UWP Community Toolkit") |
+| GITHUB_BOT_UWP_TOOLKIT_ACTIVATE_MUTATION      | Activate GitHub mutation calls (false by default) |

@@ -29,14 +29,16 @@ module.exports = function (context) {
                 };
             }
         });
-        decisions.filter(function (d) { return d.decision === 'alert'; }).forEach(function (d) {
-            var daysBeforeClosingIssue = 7 * (2 - d.numberOfAlertsAlreadySent);
-            github_1.commentGitHubIssue(githubApiHeaders, d.issue.id, "This issue seems inactive. It will automatically be closed in " + daysBeforeClosingIssue + " days if there is no activity.");
-        });
-        decisions.filter(function (d) { return d.decision === 'close'; }).forEach(function (d) {
-            github_1.commentGitHubIssue(githubApiHeaders, d.issue.id, 'Issue is inactive. It was automatically closed.');
-            github_1.closeGitHubIssue(githubApiHeaders, d.issue.id);
-        });
+        if (process.env.GITHUB_BOT_UWP_TOOLKIT_ACTIVATE_MUTATION) {
+            decisions.filter(function (d) { return d.decision === 'alert'; }).forEach(function (d) {
+                var daysBeforeClosingIssue = 7 * (2 - d.numberOfAlertsAlreadySent);
+                github_1.commentGitHubIssue(githubApiHeaders, d.issue.id, "This issue seems inactive. It will automatically be closed in " + daysBeforeClosingIssue + " days if there is no activity.");
+            });
+            decisions.filter(function (d) { return d.decision === 'close'; }).forEach(function (d) {
+                github_1.commentGitHubIssue(githubApiHeaders, d.issue.id, 'Issue is inactive. It was automatically closed.');
+                github_1.closeGitHubIssue(githubApiHeaders, d.issue.id);
+            });
+        }
         context.done(null, decisions);
     });
 };

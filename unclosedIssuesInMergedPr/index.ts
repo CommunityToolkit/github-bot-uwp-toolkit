@@ -19,7 +19,7 @@ module.exports = (context, pullRequestId: number) => {
         (pullRequest) => {
             // get linked items (can be issue or PR)
             const linkedItemsNumbers = getLinkedItemsNumbersInPullRequest(
-                process.env.GITHUB_BOT_UWP_TOOLKIT_USERNAME, 
+                process.env.GITHUB_BOT_UWP_TOOLKIT_USERNAME,
                 pullRequest);
 
             getIssueOrPullRequestLinks(githubApiHeaders, repoOwner, repoName, linkedItemsNumbers, (results) => {
@@ -28,12 +28,14 @@ module.exports = (context, pullRequestId: number) => {
                     .map(r => r.__typename === 'Issue' ? r.number : null)
                     .filter(n => !!n);
 
-                // send a message with links to unclosed issues
-                const linkedItemsMessagePart = unclosedIssuesNumber.map(n => '#' + n).join(', ');
-                commentGitHubIssue(
-                    githubApiHeaders,
-                    pullRequest.id,
-                    `This PR is linked to unclosed issues. Please check if one of these issues should be closed: ${linkedItemsMessagePart}`);
+                if (process.env.GITHUB_BOT_UWP_TOOLKIT_ACTIVATE_MUTATION) {
+                    // send a message with links to unclosed issues
+                    const linkedItemsMessagePart = unclosedIssuesNumber.map(n => '#' + n).join(', ');
+                    commentGitHubIssue(
+                        githubApiHeaders,
+                        pullRequest.id,
+                        `This PR is linked to unclosed issues. Please check if one of these issues should be closed: ${linkedItemsMessagePart}`);
+                }
 
                 context.done(null, unclosedIssuesNumber);
             });

@@ -159,6 +159,7 @@ const commentGitHubIssueMutation = (issueId: string, comment: string): string =>
       }`;
 }
 
+// TODO : this mutation is not currently available - should use the REST API 
 export const closeGitHubIssue = (headers: any, issueId: string) => {
     performGitHubGraphqlRequest(headers, {
         query: closeGitHubIssueMutation(issueId)

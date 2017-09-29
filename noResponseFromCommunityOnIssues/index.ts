@@ -21,10 +21,12 @@ module.exports = (context) => {
                 return detectIfNoResponseFromCommunity(issue, exclusiveLabels);
             });
 
-            // send a message with a ping to the team
-            issuesWithoutResponse.forEach(issue => {
-                commentGitHubIssue(githubApiHeaders, issue.id, `No response from the community. ping @nmetulev`);
-            });
+            if (process.env.GITHUB_BOT_UWP_TOOLKIT_ACTIVATE_MUTATION) {
+                // send a message with a ping to the team
+                issuesWithoutResponse.forEach(issue => {
+                    commentGitHubIssue(githubApiHeaders, issue.id, `No response from the community. ping @nmetulev`);
+                });
+            }
 
             context.done(null, issuesWithoutResponse);
         });

@@ -16,8 +16,10 @@ module.exports = function (context, pullRequestId) {
                 .filter(function (r) { return r.__typename === 'Issue' && r.closed === false; })
                 .map(function (r) { return r.__typename === 'Issue' ? r.number : null; })
                 .filter(function (n) { return !!n; });
-            var linkedItemsMessagePart = unclosedIssuesNumber.map(function (n) { return '#' + n; }).join(', ');
-            github_1.commentGitHubIssue(githubApiHeaders, pullRequest.id, "This PR is linked to unclosed issues. Please check if one of these issues should be closed: " + linkedItemsMessagePart);
+            if (process.env.GITHUB_BOT_UWP_TOOLKIT_ACTIVATE_MUTATION) {
+                var linkedItemsMessagePart = unclosedIssuesNumber.map(function (n) { return '#' + n; }).join(', ');
+                github_1.commentGitHubIssue(githubApiHeaders, pullRequest.id, "This PR is linked to unclosed issues. Please check if one of these issues should be closed: " + linkedItemsMessagePart);
+            }
             context.done(null, unclosedIssuesNumber);
         });
     });
