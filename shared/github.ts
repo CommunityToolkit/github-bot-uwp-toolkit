@@ -81,18 +81,18 @@ const getGitHubIssuesQuery = (repoOwner: string, repoName: string, afterCursor?:
       }`;
 }
 
-export const getPullRequest = (headers: any, repoOwner: string, repoName: string, id: number, callback: (pr: PullRequestNode) => any) => {
+export const getPullRequest = (headers: any, repoOwner: string, repoName: string, number: number, callback: (pr: PullRequestNode) => any) => {
     performGitHubGraphqlRequest(headers, {
-        query: getPullRequestQuery(repoOwner, repoName, id)
+        query: getPullRequestQuery(repoOwner, repoName, number)
     }, (response) => {
         callback(response.data.repository.pullRequest);
     });
 }
-const getPullRequestQuery = (repoOwner: string, repoName: string, id: number): string => {
+const getPullRequestQuery = (repoOwner: string, repoName: string, number: number): string => {
     return `
       query { 
         repository(owner: "${repoOwner}", name: "${repoName}") { 
-          pullRequest(number: ${id}) {
+          pullRequest(number: ${number}) {
             id,
             body,
             comments(first: 100) {

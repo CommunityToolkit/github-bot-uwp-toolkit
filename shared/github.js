@@ -21,15 +21,15 @@ exports.getAllGitHubIssuesRecursively = function (headers, repoOwner, repoName, 
 var getGitHubIssuesQuery = function (repoOwner, repoName, afterCursor) {
     return "\n      query { \n        repository(owner: \"" + repoOwner + "\", name: \"" + repoName + "\") { \n          issues(states: [OPEN], first: 50" + (!!afterCursor ? ", after: \"" + afterCursor + "\"" : '') + ") {\n            pageInfo {\n              hasNextPage,\n              endCursor\n            },\n            edges {\n              node {\n                id,\n                author {\n                  login\n                },\n                createdAt,\n                comments {\n                    totalCount\n                },\n                lastComment: comments(last: 1) {\n                    edges {\n                      node {\n                        updatedAt\n                      }\n                  }\n                },\n                lastTwoComments: comments(last: 2) {\n                  edges {\n                    node {\n                      author {\n                        login\n                      },\n                      body\n                    }\n                  }\n                },\n                commentAuthors: comments(first: 100) {\n                  edges {\n                    node {\n                      author {\n                        login\n                      }\n                    }\n                  }\n                },\n                labels(first: 10) {\n                  edges {\n                    node {\n                      name\n                    }\n                  }\n                }\n              }\n            }\n          }\n        }\n      }";
 };
-exports.getPullRequest = function (headers, repoOwner, repoName, id, callback) {
+exports.getPullRequest = function (headers, repoOwner, repoName, number, callback) {
     performGitHubGraphqlRequest(headers, {
-        query: getPullRequestQuery(repoOwner, repoName, id)
+        query: getPullRequestQuery(repoOwner, repoName, number)
     }, function (response) {
         callback(response.data.repository.pullRequest);
     });
 };
-var getPullRequestQuery = function (repoOwner, repoName, id) {
-    return "\n      query { \n        repository(owner: \"" + repoOwner + "\", name: \"" + repoName + "\") { \n          pullRequest(number: " + id + ") {\n            id,\n            body,\n            comments(first: 100) {\n              edges {\n                node {\n                  author {\n                    login\n                  },\n                  body\n                }\n              }\n            }\n          }\n        }\n      }";
+var getPullRequestQuery = function (repoOwner, repoName, number) {
+    return "\n      query { \n        repository(owner: \"" + repoOwner + "\", name: \"" + repoName + "\") { \n          pullRequest(number: " + number + ") {\n            id,\n            body,\n            comments(first: 100) {\n              edges {\n                node {\n                  author {\n                    login\n                  },\n                  body\n                }\n              }\n            }\n          }\n        }\n      }";
 };
 exports.getIssueOrPullRequestLinks = function (headers, repoOwner, repoName, numbers, callback) {
     performGitHubGraphqlRequest(headers, {

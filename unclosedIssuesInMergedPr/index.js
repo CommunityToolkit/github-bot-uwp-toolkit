@@ -2,14 +2,19 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var utils_1 = require("../shared/utils");
 var github_1 = require("../shared/github");
-module.exports = function (context, pullRequestId) {
+module.exports = function (context, req) {
+    if (req.action !== 'closed' || !req.pull_request.merged) {
+        context.log('Only watch merged PR.');
+        context.done(null, { success: false, message: 'Only watch merged PR.' });
+    }
     var githubApiHeaders = {
         'User-Agent': 'github-bot-uwp-toolkit',
         'Authorization': 'token ' + process.env.GITHUB_BOT_UWP_TOOLKIT_ACCESS_TOKEN
     };
     var repoOwner = process.env.GITHUB_BOT_UWP_TOOLKIT_REPO_OWNER;
     var repoName = process.env.GITHUB_BOT_UWP_TOOLKIT_REPO_NAME;
-    github_1.getPullRequest(githubApiHeaders, repoOwner, repoName, pullRequestId, function (pullRequest) {
+    var pullRequestNumber = req.number;
+    github_1.getPullRequest(githubApiHeaders, repoOwner, repoName, pullRequestNumber, function (pullRequest) {
         var linkedItemsNumbers = getLinkedItemsNumbersInPullRequest(process.env.GITHUB_BOT_UWP_TOOLKIT_USERNAME, pullRequest);
         github_1.getIssueOrPullRequestLinks(githubApiHeaders, repoOwner, repoName, linkedItemsNumbers, function (results) {
             var unclosedIssuesNumber = results
@@ -20,7 +25,7 @@ module.exports = function (context, pullRequestId) {
                 var linkedItemsMessagePart = unclosedIssuesNumber.map(function (n) { return '#' + n; }).join(', ');
                 github_1.commentGitHubIssue(githubApiHeaders, pullRequest.id, "This PR is linked to unclosed issues. Please check if one of these issues should be closed: " + linkedItemsMessagePart);
             }
-            context.done(null, unclosedIssuesNumber);
+            context.done(null, { success: true, result: unclosedIssuesNumber });
         });
     });
 };
