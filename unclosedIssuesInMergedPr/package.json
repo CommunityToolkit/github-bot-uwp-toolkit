@@ -1,0 +1,5 @@
+{
+    "name": "unclosed-issues-in-merged-pr",
+    "version": "0.0.1",
+    "description": "Check if there is still unclosed issues linked to a merged PR"
+}
