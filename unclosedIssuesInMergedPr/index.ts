@@ -5,7 +5,7 @@ import { getPullRequest, getIssueOrPullRequestLinks, commentGitHubIssue } from '
 module.exports = (context, req) => {
     if (req.action !== 'closed' || !req.pull_request.merged) {
         context.log('Only watch merged PR.');
-        context.done(null, { success: false, message: 'Only watch merged PR.' });
+        context.done(null, { status: 201, body: { success: false, message: 'Only watch merged PR.' } });
         return;
     }
 
@@ -36,7 +36,7 @@ module.exports = (context, req) => {
                     .filter(n => !!n);
 
                 if (unclosedIssuesNumber.length <= 0) {
-                    context.done(null, { success: false, message: 'No unclosed issue linked to this merged PR.' });
+                    context.done(null, { status: 201, body: { success: false, message: 'No unclosed issue linked to this merged PR.' } });
                     return;
                 }
 
@@ -49,7 +49,7 @@ module.exports = (context, req) => {
                         `This PR is linked to unclosed issues. Please check if one of these issues should be closed: ${linkedItemsMessagePart}`);
                 }
 
-                context.done(null, { success: true, result: unclosedIssuesNumber });
+                context.done(null, { status: 201, body: { success: true, message: unclosedIssuesNumber } });
             });
         });
 }

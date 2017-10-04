@@ -28,7 +28,7 @@ module.exports = (context) => {
                 });
             }
 
-            context.done(null, issuesWithoutResponse);
+            context.done(null, { status: 201, body: issuesWithoutResponse });
         });
 };
 

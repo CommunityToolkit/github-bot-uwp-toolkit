@@ -39,7 +39,7 @@ module.exports = function (context) {
                 github_1.closeGitHubIssue(githubApiHeaders, d.issue.id);
             });
         }
-        context.done(null, decisions);
+        context.done(null, { status: 201, body: decisions });
     });
 };
 var detectNumberOfAlertsAlreadySent = function (botUsername, issue) {

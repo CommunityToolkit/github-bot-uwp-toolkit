@@ -66,7 +66,7 @@ module.exports = (context) => {
                 });
             }
 
-            context.done(null, decisions);
+            context.done(null, { status: 201, body: decisions });
         });
 }
 

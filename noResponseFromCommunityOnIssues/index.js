@@ -17,7 +17,7 @@ module.exports = function (context) {
                 github_1.commentGitHubIssue(githubApiHeaders, issue.id, "No response from the community. ping @nmetulev");
             });
         }
-        context.done(null, issuesWithoutResponse);
+        context.done(null, { status: 201, body: issuesWithoutResponse });
     });
 };
 var detectIfNoResponseFromCommunity = function (issue, exclusiveLabels) {

@@ -5,7 +5,7 @@ var github_1 = require("../shared/github");
 module.exports = function (context, req) {
     if (req.action !== 'closed' || !req.pull_request.merged) {
         context.log('Only watch merged PR.');
-        context.done(null, { success: false, message: 'Only watch merged PR.' });
+        context.done(null, { status: 201, body: { success: false, message: 'Only watch merged PR.' } });
         return;
     }
     var githubApiHeaders = {
@@ -23,14 +23,14 @@ module.exports = function (context, req) {
                 .map(function (r) { return r.__typename === 'Issue' ? r.number : null; })
                 .filter(function (n) { return !!n; });
             if (unclosedIssuesNumber.length <= 0) {
-                context.done(null, { success: false, message: 'No unclosed issue linked to this merged PR.' });
+                context.done(null, { status: 201, body: { success: false, message: 'No unclosed issue linked to this merged PR.' } });
                 return;
             }
             if (process.env.GITHUB_BOT_UWP_TOOLKIT_ACTIVATE_MUTATION) {
                 var linkedItemsMessagePart = unclosedIssuesNumber.map(function (n) { return '#' + n; }).join(', ');
                 github_1.commentGitHubIssue(githubApiHeaders, pullRequest.id, "This PR is linked to unclosed issues. Please check if one of these issues should be closed: " + linkedItemsMessagePart);
             }
-            context.done(null, { success: true, result: unclosedIssuesNumber });
+            context.done(null, { status: 201, body: { success: true, message: unclosedIssuesNumber } });
         });
     });
 };

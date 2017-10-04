@@ -5,6 +5,11 @@
             "name": "req",
             "type": "httpTrigger",
             "direction": "in"
+        },
+        {
+            "type": "http",
+            "direction": "out",
+            "name": "$return"
         }
     ]
 }
