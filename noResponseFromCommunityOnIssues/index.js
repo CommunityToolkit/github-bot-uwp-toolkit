@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var utils_1 = require("../shared/utils");
+var functions_1 = require("../shared/functions");
 var github_1 = require("../shared/github");
 module.exports = function (context) {
     var githubApiHeaders = {
@@ -17,7 +18,7 @@ module.exports = function (context) {
                 github_1.commentGitHubIssue(githubApiHeaders, issue.id, "No response from the community. ping @nmetulev");
             });
         }
-        context.done(null, { status: 201, body: issuesWithoutResponse });
+        functions_1.completeFunction(context, null, { status: 201, body: issuesWithoutResponse });
     });
 };
 var detectIfNoResponseFromCommunity = function (issue, exclusiveLabels) {

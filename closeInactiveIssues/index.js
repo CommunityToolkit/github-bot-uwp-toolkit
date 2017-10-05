@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var utils_1 = require("../shared/utils");
+var functions_1 = require("../shared/functions");
 var github_1 = require("../shared/github");
 module.exports = function (context) {
     var githubApiHeaders = {
@@ -39,7 +40,7 @@ module.exports = function (context) {
                 github_1.closeGitHubIssue(githubApiHeaders, d.issue.id);
             });
         }
-        context.done(null, { status: 201, body: decisions });
+        functions_1.completeFunction(context, null, { status: 201, body: decisions });
     });
 };
 var detectNumberOfAlertsAlreadySent = function (botUsername, issue) {

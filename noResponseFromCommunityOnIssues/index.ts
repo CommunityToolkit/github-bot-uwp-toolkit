@@ -1,4 +1,5 @@
 import { addDays, distinct } from '../shared/utils';
+import { completeFunction } from '../shared/functions';
 import { IssueNode } from '../shared/models';
 import { getAllGitHubIssuesRecursively, commentGitHubIssue } from '../shared/github';
 
@@ -28,7 +29,7 @@ module.exports = (context) => {
                 });
             }
 
-            context.done(null, { status: 201, body: issuesWithoutResponse });
+            completeFunction(context, null, { status: 201, body: issuesWithoutResponse });
         });
 };
 
