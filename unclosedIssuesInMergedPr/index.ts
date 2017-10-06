@@ -65,9 +65,13 @@ const getLinkedItemsNumbersInPullRequest = (botUsername: string, pullRequest: Pu
 
     if (!hasAlreadyGotTheMessage) {
         // check if there are linked items (issues/prs) to the PR (analyze text of PR comments)
-        const linkedItemsNumbers = pullRequest.comments.edges.map(edge => edge.node)
+        const linkedItemsNumbersInComments = pullRequest.comments.edges.map(edge => edge.node)
             .map(c => searchLinkedItemsNumbersInComment(c.body))
             .reduce((a, b) => a.concat(b), []);
+
+        const linkedItemsNubmersInBodyMessage = searchLinkedItemsNumbersInComment(pullRequest.body);
+
+        const linkedItemsNumbers = linkedItemsNumbersInComments.concat(linkedItemsNubmersInBodyMessage);
         const distinctLinkedItemsNumbers = distinct(linkedItemsNumbers);
 
         return distinctLinkedItemsNumbers;

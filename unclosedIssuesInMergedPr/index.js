@@ -42,9 +42,11 @@ var getLinkedItemsNumbersInPullRequest = function (botUsername, pullRequest) {
         return (c.author.login === botUsername && c.body.indexOf('This PR is linked to unclosed issues.') > -1);
     }).length > 0;
     if (!hasAlreadyGotTheMessage) {
-        var linkedItemsNumbers = pullRequest.comments.edges.map(function (edge) { return edge.node; })
+        var linkedItemsNumbersInComments = pullRequest.comments.edges.map(function (edge) { return edge.node; })
             .map(function (c) { return searchLinkedItemsNumbersInComment(c.body); })
             .reduce(function (a, b) { return a.concat(b); }, []);
+        var linkedItemsNubmersInBodyMessage = searchLinkedItemsNumbersInComment(pullRequest.body);
+        var linkedItemsNumbers = linkedItemsNumbersInComments.concat(linkedItemsNubmersInBodyMessage);
         var distinctLinkedItemsNumbers = utils_1.distinct(linkedItemsNumbers);
         return distinctLinkedItemsNumbers;
     }
