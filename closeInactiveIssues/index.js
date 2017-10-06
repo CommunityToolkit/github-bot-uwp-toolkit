@@ -32,7 +32,8 @@ module.exports = function (context) {
         });
         if (process.env.GITHUB_BOT_UWP_TOOLKIT_ACTIVATE_MUTATION) {
             decisions.filter(function (d) { return d.decision === 'alert'; }).forEach(function (d) {
-                var daysBeforeClosingIssue = 7 * (2 - d.numberOfAlertsAlreadySent);
+                var numberOfDaysWithoutActivity = parseInt(process.env.NUMBER_OF_DAYS_WITHOUT_ACTIVITY || '7');
+                var daysBeforeClosingIssue = numberOfDaysWithoutActivity * (2 - d.numberOfAlertsAlreadySent);
                 github_1.commentGitHubIssue(githubApiHeaders, d.issue.id, "This issue seems inactive. It will automatically be closed in " + daysBeforeClosingIssue + " days if there is no activity.");
             });
             decisions.filter(function (d) { return d.decision === 'close'; }).forEach(function (d) {
@@ -68,7 +69,8 @@ var detectIssueWithoutActivity = function (issue, exclusiveLabels) {
         if (!containsExclusiveLabels) {
             var lastComment = issue.lastComment.edges[0];
             var today = new Date();
-            if (lastComment && new Date(lastComment.node.updatedAt) < utils_1.addDays(today, -7)) {
+            var numberOfDaysWithoutActivity = parseInt(process.env.NUMBER_OF_DAYS_WITHOUT_ACTIVITY || '7');
+            if (lastComment && new Date(lastComment.node.updatedAt) < utils_1.addDays(today, -numberOfDaysWithoutActivity)) {
                 return true;
             }
         }

@@ -48,10 +48,11 @@ const detectIfNoResponseFromCommunity = (issue: IssueNode, exclusiveLabels: stri
             });
 
         if (!containsExclusiveLabels) {
-            // check if the issue was created 7 days ago
+            // check if the issue was created x days ago
             const today = new Date();
+            const numberOfDaysWithoutResponse = parseInt(process.env.NUMBER_OF_DAYS_WITHOUT_RESPONSE || '7');
 
-            if (new Date(issue.createdAt) < addDays(today, -7)) {
+            if (new Date(issue.createdAt) < addDays(today, -numberOfDaysWithoutResponse)) {
                 return true;
             }
         }

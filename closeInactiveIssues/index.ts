@@ -47,7 +47,8 @@ module.exports = (context) => {
                 // send new alerts if it was that decision
                 decisions.filter(d => d.decision === 'alert').forEach(d => {
                     // send a message to the creator that issue will be close in X days
-                    const daysBeforeClosingIssue = 7 * (2 - d.numberOfAlertsAlreadySent);
+                    const numberOfDaysWithoutActivity = parseInt(process.env.NUMBER_OF_DAYS_WITHOUT_ACTIVITY || '7');
+                    const daysBeforeClosingIssue = numberOfDaysWithoutActivity * (2 - d.numberOfAlertsAlreadySent);
 
                     commentGitHubIssue(
                         githubApiHeaders,
@@ -110,11 +111,12 @@ const detectIssueWithoutActivity = (issue: IssueNode, exclusiveLabels: string[])
         }).length > 0;
 
         if (!containsExclusiveLabels) {
-            // check if last message was sent 7 days ago
+            // check if last message was sent x days ago
             const lastComment = issue.lastComment.edges[0];
             const today = new Date();
+            const numberOfDaysWithoutActivity = parseInt(process.env.NUMBER_OF_DAYS_WITHOUT_ACTIVITY || '7');
 
-            if (lastComment && new Date(lastComment.node.updatedAt) < addDays(today, -7)) {
+            if (lastComment && new Date(lastComment.node.updatedAt) < addDays(today, -numberOfDaysWithoutActivity)) {
                 return true;
             }
         }

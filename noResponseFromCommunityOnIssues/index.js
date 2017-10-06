@@ -33,7 +33,8 @@ var detectIfNoResponseFromCommunity = function (issue, exclusiveLabels) {
         });
         if (!containsExclusiveLabels) {
             var today = new Date();
-            if (new Date(issue.createdAt) < utils_1.addDays(today, -7)) {
+            var numberOfDaysWithoutResponse = parseInt(process.env.NUMBER_OF_DAYS_WITHOUT_RESPONSE || '7');
+            if (new Date(issue.createdAt) < utils_1.addDays(today, -numberOfDaysWithoutResponse)) {
                 return true;
             }
         }
