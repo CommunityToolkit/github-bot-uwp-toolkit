@@ -37,6 +37,7 @@ module.exports = (context, req) => {
                     .filter(n => !!n);
 
                 if (unclosedIssuesNumber.length <= 0) {
+                    context.log('No linked issue detected.');
                     completeFunction(context, req, { status: 201, body: { success: false, message: 'No unclosed issue linked to this merged PR.' } });
                     return;
                 }
@@ -50,6 +51,7 @@ module.exports = (context, req) => {
                         `This PR is linked to unclosed issues. Please check if one of these issues should be closed: ${linkedItemsMessagePart}`);
                 }
 
+                context.log(unclosedIssuesNumber);
                 completeFunction(context, req, { status: 201, body: { success: true, message: unclosedIssuesNumber } });
             });
         });

@@ -24,6 +24,7 @@ module.exports = function (context, req) {
                 .map(function (r) { return r.__typename === 'Issue' ? r.number : null; })
                 .filter(function (n) { return !!n; });
             if (unclosedIssuesNumber.length <= 0) {
+                context.log('No linked issue detected.');
                 functions_1.completeFunction(context, req, { status: 201, body: { success: false, message: 'No unclosed issue linked to this merged PR.' } });
                 return;
             }
@@ -31,6 +32,7 @@ module.exports = function (context, req) {
                 var linkedItemsMessagePart = unclosedIssuesNumber.map(function (n) { return '#' + n; }).join(', ');
                 github_1.commentGitHubIssue(githubApiHeaders, pullRequest.id, "This PR is linked to unclosed issues. Please check if one of these issues should be closed: " + linkedItemsMessagePart);
             }
+            context.log(unclosedIssuesNumber);
             functions_1.completeFunction(context, req, { status: 201, body: { success: true, message: unclosedIssuesNumber } });
         });
     });

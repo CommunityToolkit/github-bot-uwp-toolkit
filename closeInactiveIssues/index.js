@@ -40,6 +40,7 @@ module.exports = function (context) {
                 github_1.closeGitHubIssue(githubApiHeaders, d.issue.id);
             });
         }
+        context.log(decisions);
         functions_1.completeFunction(context, null, { status: 201, body: decisions });
     });
 };

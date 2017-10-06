@@ -67,6 +67,7 @@ module.exports = (context) => {
                 });
             }
 
+            context.log(decisions);
             completeFunction(context, null, { status: 201, body: decisions });
         });
 }

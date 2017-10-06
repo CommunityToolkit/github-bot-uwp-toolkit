@@ -29,6 +29,7 @@ module.exports = (context) => {
                 });
             }
 
+            context.log(issuesWithoutResponse);
             completeFunction(context, null, { status: 201, body: issuesWithoutResponse });
         });
 };

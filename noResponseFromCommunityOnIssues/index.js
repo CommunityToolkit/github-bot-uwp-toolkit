@@ -18,6 +18,7 @@ module.exports = function (context) {
                 github_1.commentGitHubIssue(githubApiHeaders, issue.id, "No response from the community. ping @nmetulev");
             });
         }
+        context.log(issuesWithoutResponse);
         functions_1.completeFunction(context, null, { status: 201, body: issuesWithoutResponse });
     });
 };
