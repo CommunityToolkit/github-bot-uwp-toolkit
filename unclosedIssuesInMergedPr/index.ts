@@ -44,7 +44,11 @@ module.exports = (context, req) => {
 
                 if (process.env.GITHUB_BOT_UWP_TOOLKIT_ACTIVATE_MUTATION) {
                     // send a message with links to unclosed issues
-                    const linkedItemsMessagePart = unclosedIssuesNumber.map(n => '#' + n).join(', ');
+                    const linkedItemsMessagePart = unclosedIssuesNumber
+                        .sort((a, b) => a - b)
+                        .map(n => '#' + n)
+                        .join(', ');
+                    
                     commentGitHubIssue(
                         githubApiHeaders,
                         pullRequest.id,

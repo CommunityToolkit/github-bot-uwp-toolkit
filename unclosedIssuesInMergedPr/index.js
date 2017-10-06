@@ -29,7 +29,10 @@ module.exports = function (context, req) {
                 return;
             }
             if (process.env.GITHUB_BOT_UWP_TOOLKIT_ACTIVATE_MUTATION) {
-                var linkedItemsMessagePart = unclosedIssuesNumber.map(function (n) { return '#' + n; }).join(', ');
+                var linkedItemsMessagePart = unclosedIssuesNumber
+                    .sort(function (a, b) { return a - b; })
+                    .map(function (n) { return '#' + n; })
+                    .join(', ');
                 github_1.commentGitHubIssue(githubApiHeaders, pullRequest.id, "This PR is linked to unclosed issues. Please check if one of these issues should be closed: " + linkedItemsMessagePart);
             }
             context.log(unclosedIssuesNumber);
