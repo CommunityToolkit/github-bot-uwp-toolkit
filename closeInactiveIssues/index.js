@@ -38,7 +38,7 @@ module.exports = function (context) {
             });
             decisions.filter(function (d) { return d.decision === 'close'; }).forEach(function (d) {
                 github_1.commentGitHubIssue(githubApiHeaders, d.issue.id, 'Issue is inactive. It was automatically closed.');
-                github_1.closeGitHubIssue(githubApiHeaders, d.issue.id);
+                github_1.closeGitHubIssue(githubApiHeaders, process.env.GITHUB_BOT_UWP_TOOLKIT_REPO_OWNER, process.env.GITHUB_BOT_UWP_TOOLKIT_REPO_NAME, d.issue.number, d.issue.id);
             });
         }
         context.log(decisions);

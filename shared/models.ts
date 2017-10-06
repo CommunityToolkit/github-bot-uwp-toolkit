@@ -1,5 +1,6 @@
 export type IssueNode = {
     id: string;
+    number: number;
     author: {
         login: string
     };

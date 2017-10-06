@@ -4,6 +4,9 @@ var http_1 = require("./http");
 var performGitHubGraphqlRequest = function (headers, data, success) {
     http_1.performHttpRequest('api.github.com', '/graphql', 'POST', headers, data, success);
 };
+var performGitHubRestRequest = function (headers, route, method, data, success) {
+    http_1.performHttpRequest('api.github.com', route, method, headers, data, success);
+};
 exports.getAllGitHubIssuesRecursively = function (headers, repoOwner, repoName, afterCursor, callback) {
     performGitHubGraphqlRequest(headers, {
         query: getGitHubIssuesQuery(repoOwner, repoName, afterCursor)
@@ -19,7 +22,7 @@ exports.getAllGitHubIssuesRecursively = function (headers, repoOwner, repoName, 
     });
 };
 var getGitHubIssuesQuery = function (repoOwner, repoName, afterCursor) {
-    return "\n      query { \n        repository(owner: \"" + repoOwner + "\", name: \"" + repoName + "\") { \n          issues(states: [OPEN], first: 50" + (!!afterCursor ? ", after: \"" + afterCursor + "\"" : '') + ") {\n            pageInfo {\n              hasNextPage,\n              endCursor\n            },\n            edges {\n              node {\n                id,\n                author {\n                  login\n                },\n                createdAt,\n                comments {\n                    totalCount\n                },\n                lastComment: comments(last: 1) {\n                    edges {\n                      node {\n                        updatedAt\n                      }\n                  }\n                },\n                lastTwoComments: comments(last: 2) {\n                  edges {\n                    node {\n                      author {\n                        login\n                      },\n                      body\n                    }\n                  }\n                },\n                commentAuthors: comments(first: 100) {\n                  edges {\n                    node {\n                      author {\n                        login\n                      }\n                    }\n                  }\n                },\n                labels(first: 10) {\n                  edges {\n                    node {\n                      name\n                    }\n                  }\n                }\n              }\n            }\n          }\n        }\n      }";
+    return "\n      query { \n        repository(owner: \"" + repoOwner + "\", name: \"" + repoName + "\") { \n          issues(states: [OPEN], first: 50" + (!!afterCursor ? ", after: \"" + afterCursor + "\"" : '') + ") {\n            pageInfo {\n              hasNextPage,\n              endCursor\n            },\n            edges {\n              node {\n                id,\n                number,\n                author {\n                  login\n                },\n                createdAt,\n                comments {\n                    totalCount\n                },\n                lastComment: comments(last: 1) {\n                    edges {\n                      node {\n                        updatedAt\n                      }\n                  }\n                },\n                lastTwoComments: comments(last: 2) {\n                  edges {\n                    node {\n                      author {\n                        login\n                      },\n                      body\n                    }\n                  }\n                },\n                commentAuthors: comments(first: 100) {\n                  edges {\n                    node {\n                      author {\n                        login\n                      }\n                    }\n                  }\n                },\n                labels(first: 10) {\n                  edges {\n                    node {\n                      name\n                    }\n                  }\n                }\n              }\n            }\n          }\n        }\n      }";
 };
 exports.getPullRequest = function (headers, repoOwner, repoName, number, callback) {
     performGitHubGraphqlRequest(headers, {
@@ -55,10 +58,18 @@ exports.commentGitHubIssue = function (headers, issueId, comment) {
 var commentGitHubIssueMutation = function (issueId, comment) {
     return "\n      mutation {\n        addComment(input: { subjectId: \"" + issueId + "\", body: \"" + comment + "\" }) {\n          subject {\n            id\n          }\n        }\n      }";
 };
-exports.closeGitHubIssue = function (headers, issueId) {
-    performGitHubGraphqlRequest(headers, {
-        query: closeGitHubIssueMutation(issueId)
-    });
+exports.closeGitHubIssue = function (headers, owner, repo, issueNumber, issueId) {
+    var useGraphql = false;
+    if (useGraphql) {
+        performGitHubGraphqlRequest(headers, {
+            query: closeGitHubIssueMutation(issueId)
+        });
+    }
+    else {
+        performGitHubRestRequest(headers, "/repos/" + owner + "/" + repo + "/issues/" + issueNumber, 'PATCH', {
+            state: 'closed'
+        });
+    }
 };
 var closeGitHubIssueMutation = function (issueId) {
     return "\n      mutation {\n        closeIssue(input: { subjectId: \"" + issueId + "\" }) {\n          subject {\n            id\n          }\n        }\n      }";

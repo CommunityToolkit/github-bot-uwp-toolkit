@@ -1,7 +1,7 @@
 import * as querystring from 'querystring';
 import * as https from 'https';
 
-export const performHttpRequest = (host: string, endpoint: string, method: 'GET' | 'POST', headers: any, data: any, success: (response: any) => any) => {
+export const performHttpRequest = (host: string, endpoint: string, method: 'GET' | 'POST' | 'PATCH' | 'DELETE', headers: any, data: any, success: (response: any) => any) => {
     const dataString = JSON.stringify(data);
     let requestHeaders = { ...headers };
 

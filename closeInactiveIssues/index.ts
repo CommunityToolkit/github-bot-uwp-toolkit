@@ -64,7 +64,12 @@ module.exports = (context) => {
                         d.issue.id,
                         'Issue is inactive. It was automatically closed.');
 
-                    closeGitHubIssue(githubApiHeaders, d.issue.id);
+                    closeGitHubIssue(
+                        githubApiHeaders, 
+                        process.env.GITHUB_BOT_UWP_TOOLKIT_REPO_OWNER,
+                        process.env.GITHUB_BOT_UWP_TOOLKIT_REPO_NAME,
+                        d.issue.number,
+                        d.issue.id);
                 });
             }
 
