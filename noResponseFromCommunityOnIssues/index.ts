@@ -1,5 +1,5 @@
 import { addDays, distinct } from '../shared/utils';
-import { completeFunction } from '../shared/functions';
+import { completeFunctionBySendingMail } from '../shared/functions';
 import { IssueNode } from '../shared/models';
 import { getAllGitHubIssuesRecursively, commentGitHubIssue } from '../shared/github';
 
@@ -30,7 +30,16 @@ module.exports = (context) => {
             }
 
             context.log(issuesWithoutResponse);
-            completeFunction(context, null, { status: 201, body: issuesWithoutResponse });
+            completeFunctionBySendingMail(
+                context,
+                [{ "to": [{ "email": "nmetulev@microsoft.com" }] }],
+                { email: "sender@contoso.com" },
+                "No Response From Community On Issues",
+                [{
+                    type: 'text/plain',
+                    value: JSON.stringify(issuesWithoutResponse)
+                }]
+            );
         });
 };
 

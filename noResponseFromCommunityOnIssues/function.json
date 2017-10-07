@@ -7,9 +7,13 @@
             "direction": "in"
         },
         {
-            "type": "http",
+            "name": "$return",
+            "type": "sendGrid",
             "direction": "out",
-            "name": "$return"
+            "apiKey" : "SENDGRID_KEY",
+            "to": "nmetulev@microsoft.com",
+            "from": "nmetulev@microsoft.com",
+            "subject": "SendGrid output bindings"
         }
     ]
 }

@@ -1,12 +1,12 @@
 import { distinct } from '../shared/utils';
-import { completeFunction } from '../shared/functions';
+import { completeFunction, completeFunctionBySendingMail } from '../shared/functions';
 import { PullRequestNode } from '../shared/models';
 import { getPullRequest, getIssueOrPullRequestLinks, commentGitHubIssue } from '../shared/github';
 
 module.exports = (context, req) => {
     if (req.action !== 'closed' || !req.pull_request.merged) {
         context.log('Only watch merged PR.');
-        completeFunction(context, req, { status: 201, body: { success: false, message: 'Only watch merged PR.' } })
+        completeFunction(context, null, { status: 201, body: { success: false, message: 'Only watch merged PR.' } })
         return;
     }
 
@@ -38,17 +38,26 @@ module.exports = (context, req) => {
 
                 if (unclosedIssuesNumber.length <= 0) {
                     context.log('No linked issue detected.');
-                    completeFunction(context, req, { status: 201, body: { success: false, message: 'No unclosed issue linked to this merged PR.' } });
+                    completeFunctionBySendingMail(
+                        context,
+                        [{ "to": [{ "email": "nmetulev@microsoft.com" }] }],
+                        { email: "sender@contoso.com" },
+                        `#${pullRequestNumber} PR merged - no linked issue`,
+                        [{
+                            type: 'text/plain',
+                            value: 'No unclosed issue linked to this merged PR.'
+                        }]
+                    );
                     return;
                 }
 
+                const linkedItemsMessagePart = unclosedIssuesNumber
+                    .sort((a, b) => a - b)
+                    .map(n => '#' + n)
+                    .join(', ');
+
                 if (process.env.GITHUB_BOT_UWP_TOOLKIT_ACTIVATE_MUTATION) {
                     // send a message with links to unclosed issues
-                    const linkedItemsMessagePart = unclosedIssuesNumber
-                        .sort((a, b) => a - b)
-                        .map(n => '#' + n)
-                        .join(', ');
-                    
                     commentGitHubIssue(
                         githubApiHeaders,
                         pullRequest.id,
@@ -56,7 +65,16 @@ module.exports = (context, req) => {
                 }
 
                 context.log(unclosedIssuesNumber);
-                completeFunction(context, req, { status: 201, body: { success: true, message: unclosedIssuesNumber } });
+                completeFunctionBySendingMail(
+                    context,
+                    [{ "to": [{ "email": "nmetulev@microsoft.com" }] }],
+                    { email: "sender@contoso.com" },
+                    `#${pullRequestNumber} PR merged - found linked issues`,
+                    [{
+                        type: 'text/plain',
+                        value: `This PR is linked to unclosed issues. Please check if one of these issues should be closed: ${linkedItemsMessagePart}`
+                    }]
+                );
             });
         });
 }

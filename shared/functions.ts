@@ -5,3 +5,12 @@ export const completeFunction = (context: any, request: any, response: any) => {
         context.done();
     }
 }
+
+export const completeFunctionBySendingMail = (context: any, personalizations: any[], mailFrom: { email: string }, subject: string, content: any) => {
+    context.done(null, {
+        personalizations: personalizations,
+        from: mailFrom,
+        subject: subject,
+        content: content
+    });
+}

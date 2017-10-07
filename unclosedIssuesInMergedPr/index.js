@@ -6,7 +6,7 @@ var github_1 = require("../shared/github");
 module.exports = function (context, req) {
     if (req.action !== 'closed' || !req.pull_request.merged) {
         context.log('Only watch merged PR.');
-        functions_1.completeFunction(context, req, { status: 201, body: { success: false, message: 'Only watch merged PR.' } });
+        functions_1.completeFunction(context, null, { status: 201, body: { success: false, message: 'Only watch merged PR.' } });
         return;
     }
     var githubApiHeaders = {
@@ -25,18 +25,24 @@ module.exports = function (context, req) {
                 .filter(function (n) { return !!n; });
             if (unclosedIssuesNumber.length <= 0) {
                 context.log('No linked issue detected.');
-                functions_1.completeFunction(context, req, { status: 201, body: { success: false, message: 'No unclosed issue linked to this merged PR.' } });
+                functions_1.completeFunctionBySendingMail(context, [{ "to": [{ "email": "nmetulev@microsoft.com" }] }], { email: "sender@contoso.com" }, "#" + pullRequestNumber + " PR merged - no linked issue", [{
+                        type: 'text/plain',
+                        value: 'No unclosed issue linked to this merged PR.'
+                    }]);
                 return;
             }
+            var linkedItemsMessagePart = unclosedIssuesNumber
+                .sort(function (a, b) { return a - b; })
+                .map(function (n) { return '#' + n; })
+                .join(', ');
             if (process.env.GITHUB_BOT_UWP_TOOLKIT_ACTIVATE_MUTATION) {
-                var linkedItemsMessagePart = unclosedIssuesNumber
-                    .sort(function (a, b) { return a - b; })
-                    .map(function (n) { return '#' + n; })
-                    .join(', ');
                 github_1.commentGitHubIssue(githubApiHeaders, pullRequest.id, "This PR is linked to unclosed issues. Please check if one of these issues should be closed: " + linkedItemsMessagePart);
             }
             context.log(unclosedIssuesNumber);
-            functions_1.completeFunction(context, req, { status: 201, body: { success: true, message: unclosedIssuesNumber } });
+            functions_1.completeFunctionBySendingMail(context, [{ "to": [{ "email": "nmetulev@microsoft.com" }] }], { email: "sender@contoso.com" }, "#" + pullRequestNumber + " PR merged - found linked issues", [{
+                    type: 'text/plain',
+                    value: "This PR is linked to unclosed issues. Please check if one of these issues should be closed: " + linkedItemsMessagePart
+                }]);
         });
     });
 };
