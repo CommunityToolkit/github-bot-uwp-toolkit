@@ -20,3 +20,5 @@ These environment variables should be set to launch the bot.
 | GITHUB_BOT_UWP_TOOLKIT_REPO_OWNER             | Target Repository owner (should be "Microsoft") |
 | GITHUB_BOT_UWP_TOOLKIT_REPO_NAME              | Target Repository name (should be "UWP Community Toolkit") |
 | GITHUB_BOT_UWP_TOOLKIT_ACTIVATE_MUTATION      | Activate GitHub mutation calls (false by default) |
+| NUMBER_OF_DAYS_WITHOUT_ACTIVITY               | Number of days without activity to check on `closeInactiveIssues` function |
+| NUMBER_OF_DAYS_WITHOUT_RESPONSE               | Number of days without response to check on `noResponseFromCommunityOnIssues` function |
