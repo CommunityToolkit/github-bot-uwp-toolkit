@@ -16,6 +16,11 @@ module.exports = (context) => {
         null,
         (issues) => {
             const exclusiveLabels = ['PR in progress', 'work in progress'];
+            const contributorsToAlert = [
+                'nmetulev',
+                'Odonno',
+                'IbraheemOsama'
+            ];
 
             // check issues that match the filter
             const issuesWithoutResponse = issues.filter(issue => {
@@ -23,9 +28,11 @@ module.exports = (context) => {
             });
 
             if (process.env.GITHUB_BOT_UWP_TOOLKIT_ACTIVATE_MUTATION) {
+                const pingContributorsMessagePart = contributorsToAlert.map(c => '@' + c).join(' ');
+
                 // send a message with a ping to the team
                 issuesWithoutResponse.forEach(issue => {
-                    commentGitHubIssue(githubApiHeaders, issue.id, `No response from the community. ping @nmetulev`);
+                    commentGitHubIssue(githubApiHeaders, issue.id, `No response from the community. ping ${pingContributorsMessagePart}`);
                 });
             }
 

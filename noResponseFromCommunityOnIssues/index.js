@@ -10,12 +10,18 @@ module.exports = function (context) {
     };
     github_1.getAllGitHubIssuesRecursively(githubApiHeaders, process.env.GITHUB_BOT_UWP_TOOLKIT_REPO_OWNER, process.env.GITHUB_BOT_UWP_TOOLKIT_REPO_NAME, null, function (issues) {
         var exclusiveLabels = ['PR in progress', 'work in progress'];
+        var contributorsToAlert = [
+            'nmetulev',
+            'Odonno',
+            'IbraheemOsama'
+        ];
         var issuesWithoutResponse = issues.filter(function (issue) {
             return detectIfNoResponseFromCommunity(issue, exclusiveLabels);
         });
         if (process.env.GITHUB_BOT_UWP_TOOLKIT_ACTIVATE_MUTATION) {
+            var pingContributorsMessagePart_1 = contributorsToAlert.map(function (c) { return '@' + c; }).join(' ');
             issuesWithoutResponse.forEach(function (issue) {
-                github_1.commentGitHubIssue(githubApiHeaders, issue.id, "No response from the community. ping @nmetulev");
+                github_1.commentGitHubIssue(githubApiHeaders, issue.id, "No response from the community. ping " + pingContributorsMessagePart_1);
             });
         }
         context.log(issuesWithoutResponse);
