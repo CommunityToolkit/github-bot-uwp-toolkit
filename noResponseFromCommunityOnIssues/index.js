@@ -9,7 +9,13 @@ module.exports = function (context) {
         'Authorization': 'token ' + process.env.GITHUB_BOT_UWP_TOOLKIT_ACCESS_TOKEN
     };
     github_1.getAllGitHubIssuesRecursively(githubApiHeaders, process.env.GITHUB_BOT_UWP_TOOLKIT_REPO_OWNER, process.env.GITHUB_BOT_UWP_TOOLKIT_REPO_NAME, null, function (issues) {
-        var exclusiveLabels = ['PR in progress', 'work in progress'];
+        var exclusiveLabels = [
+            'PR in progress',
+            'work in progress',
+            'help wanted',
+            'uservoice-entry-created',
+            'mute-bot'
+        ];
         var contributorsToAlert = [
             'nmetulev',
             'Odonno',

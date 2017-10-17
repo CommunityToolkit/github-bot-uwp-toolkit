@@ -15,7 +15,13 @@ module.exports = (context) => {
         process.env.GITHUB_BOT_UWP_TOOLKIT_REPO_NAME,
         null,
         (issues) => {
-            const exclusiveLabels = ['PR in progress', 'work in progress'];
+            const exclusiveLabels = [
+                'PR in progress', 
+                'work in progress',
+                'help wanted',
+                'uservoice-entry-created',
+                'mute-bot'
+            ];
 
             // check issues that match the filter
             const issuesWithoutActivity = issues.filter(issue => {
