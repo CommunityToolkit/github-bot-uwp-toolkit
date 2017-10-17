@@ -26,11 +26,39 @@ export const getAllGitHubIssuesRecursively = (headers: any, repoOwner: string, r
     }
   });
 }
-const getGitHubIssuesQuery = (repoOwner: string, repoName: string, afterCursor?: string): string => {
+export const getAllGitHubIssuesRecursivelyFilterWithLabels = (headers: any, repoOwner: string, repoName: string, afterCursor: string, labels: string[], callback: (issues: IssueNode[]) => any) => {
+  performGitHubGraphqlRequest(headers, {
+    query: getGitHubIssuesQuery(repoOwner, repoName, afterCursor, labels)
+  }, (response) => {
+    if (response.data.repository.issues.pageInfo.hasNextPage) {
+      getAllGitHubIssuesRecursivelyFilterWithLabels(headers, repoOwner, repoName, response.data.repository.issues.pageInfo.endCursor, labels, (issues) => {
+        callback(issues.concat(response.data.repository.issues.edges.map(edge => edge.node)));
+      });
+    } else {
+      callback(response.data.repository.issues.edges.map(edge => edge.node));
+    }
+  });
+}
+const getGitHubIssuesQuery = (repoOwner: string, repoName: string, afterCursor?: string, labels?: string[]): string => {
+  const variables = [
+    {
+      name: 'first',
+      value: 50
+    },
+    {
+      name: 'after',
+      value: afterCursor ? `"${afterCursor}"` : null
+    },
+    {
+      name: 'labels',
+      value: labels ? JSON.stringify(labels) : null
+    }
+  ];
+
   return `
       query { 
         repository(owner: "${repoOwner}", name: "${repoName}") { 
-          issues(states: [OPEN], first: 50${!!afterCursor ? `, after: "${afterCursor}"` : ''}) {
+          issues(states: [OPEN], ${variables.filter(v => !!v).map(v => `${v.name}: ${v.value}`).join(', ')}) {
             pageInfo {
               hasNextPage,
               endCursor

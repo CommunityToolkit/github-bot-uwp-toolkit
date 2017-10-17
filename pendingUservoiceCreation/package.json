@@ -1,0 +1,5 @@
+{
+    "name": "pending-uservoice-creation",
+    "version": "0.0.1",
+    "description": "Check if there are GitHub issues with 'pending-uservoice-creation' label"
+}

@@ -1,0 +1,19 @@
+{
+    "bindings": [
+        {
+            "schedule": "0 0 0 * * *",
+            "name": "inputtimer",
+            "type": "timerTrigger",
+            "direction": "in"
+        },
+        {
+            "name": "$return",
+            "type": "sendGrid",
+            "direction": "out",
+            "apiKey" : "SENDGRID_KEY",
+            "to": "nmetulev@microsoft.com",
+            "from": "nmetulev@microsoft.com",
+            "subject": "SendGrid output bindings"
+        }
+    ]
+}

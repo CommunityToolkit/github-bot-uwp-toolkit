@@ -21,8 +21,36 @@ exports.getAllGitHubIssuesRecursively = function (headers, repoOwner, repoName, 
         }
     });
 };
-var getGitHubIssuesQuery = function (repoOwner, repoName, afterCursor) {
-    return "\n      query { \n        repository(owner: \"" + repoOwner + "\", name: \"" + repoName + "\") { \n          issues(states: [OPEN], first: 50" + (!!afterCursor ? ", after: \"" + afterCursor + "\"" : '') + ") {\n            pageInfo {\n              hasNextPage,\n              endCursor\n            },\n            edges {\n              node {\n                id,\n                number,\n                author {\n                  login\n                },\n                createdAt,\n                comments {\n                    totalCount\n                },\n                lastComment: comments(last: 1) {\n                    edges {\n                      node {\n                        updatedAt\n                      }\n                  }\n                },\n                lastTwoComments: comments(last: 2) {\n                  edges {\n                    node {\n                      author {\n                        login\n                      },\n                      body\n                    }\n                  }\n                },\n                commentAuthors: comments(first: 100) {\n                  edges {\n                    node {\n                      author {\n                        login\n                      }\n                    }\n                  }\n                },\n                labels(first: 10) {\n                  edges {\n                    node {\n                      name\n                    }\n                  }\n                }\n              }\n            }\n          }\n        }\n      }";
+exports.getAllGitHubIssuesRecursivelyFilterWithLabels = function (headers, repoOwner, repoName, afterCursor, labels, callback) {
+    performGitHubGraphqlRequest(headers, {
+        query: getGitHubIssuesQuery(repoOwner, repoName, afterCursor, labels)
+    }, function (response) {
+        if (response.data.repository.issues.pageInfo.hasNextPage) {
+            exports.getAllGitHubIssuesRecursivelyFilterWithLabels(headers, repoOwner, repoName, response.data.repository.issues.pageInfo.endCursor, labels, function (issues) {
+                callback(issues.concat(response.data.repository.issues.edges.map(function (edge) { return edge.node; })));
+            });
+        }
+        else {
+            callback(response.data.repository.issues.edges.map(function (edge) { return edge.node; }));
+        }
+    });
+};
+var getGitHubIssuesQuery = function (repoOwner, repoName, afterCursor, labels) {
+    var variables = [
+        {
+            name: 'first',
+            value: 50
+        },
+        {
+            name: 'after',
+            value: afterCursor ? "\"" + afterCursor + "\"" : null
+        },
+        {
+            name: 'labels',
+            value: labels ? JSON.stringify(labels) : null
+        }
+    ];
+    return "\n      query { \n        repository(owner: \"" + repoOwner + "\", name: \"" + repoName + "\") { \n          issues(states: [OPEN], " + variables.filter(function (v) { return !!v; }).map(function (v) { return v.name + ": " + v.value; }).join(', ') + ") {\n            pageInfo {\n              hasNextPage,\n              endCursor\n            },\n            edges {\n              node {\n                id,\n                number,\n                author {\n                  login\n                },\n                createdAt,\n                comments {\n                    totalCount\n                },\n                lastComment: comments(last: 1) {\n                    edges {\n                      node {\n                        updatedAt\n                      }\n                  }\n                },\n                lastTwoComments: comments(last: 2) {\n                  edges {\n                    node {\n                      author {\n                        login\n                      },\n                      body\n                    }\n                  }\n                },\n                commentAuthors: comments(first: 100) {\n                  edges {\n                    node {\n                      author {\n                        login\n                      }\n                    }\n                  }\n                },\n                labels(first: 10) {\n                  edges {\n                    node {\n                      name\n                    }\n                  }\n                }\n              }\n            }\n          }\n        }\n      }";
 };
 exports.getPullRequest = function (headers, repoOwner, repoName, number, callback) {
     performGitHubGraphqlRequest(headers, {
