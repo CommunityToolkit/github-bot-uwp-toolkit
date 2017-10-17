@@ -48,10 +48,7 @@ module.exports = function (context) {
             });
         }
         context.log(decisions);
-        functions_1.completeFunctionBySendingMail(context, [{ "to": [{ "email": "nmetulev@microsoft.com" }] }], { email: "sender@contoso.com" }, "No Activity On Issues", [{
-                type: 'text/plain',
-                value: JSON.stringify(decisions)
-            }]);
+        functions_1.completeFunction(context, null, { status: 201, body: decisions });
     });
 };
 var detectNumberOfAlertsAlreadySent = function (botUsername, issue) {

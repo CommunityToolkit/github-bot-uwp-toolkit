@@ -1,5 +1,5 @@
 import { distinct } from '../shared/utils';
-import { completeFunction, completeFunctionBySendingMail } from '../shared/functions';
+import { completeFunction } from '../shared/functions';
 import { PullRequestNode } from '../shared/models';
 import { getPullRequest, getIssueOrPullRequestLinks, commentGitHubIssue } from '../shared/github';
 
@@ -38,16 +38,7 @@ module.exports = (context, req) => {
 
                 if (unclosedIssuesNumber.length <= 0) {
                     context.log('No linked issue detected.');
-                    completeFunctionBySendingMail(
-                        context,
-                        [{ "to": [{ "email": "nmetulev@microsoft.com" }] }],
-                        { email: "sender@contoso.com" },
-                        `#${pullRequestNumber} PR merged - no linked issue`,
-                        [{
-                            type: 'text/plain',
-                            value: 'No unclosed issue linked to this merged PR.'
-                        }]
-                    );
+                    completeFunction(context, null, { status: 201, body: { success: false, message: 'No unclosed issue linked to this merged PR.' } });
                     return;
                 }
 
@@ -65,16 +56,7 @@ module.exports = (context, req) => {
                 }
 
                 context.log(unclosedIssuesNumber);
-                completeFunctionBySendingMail(
-                    context,
-                    [{ "to": [{ "email": "nmetulev@microsoft.com" }] }],
-                    { email: "sender@contoso.com" },
-                    `#${pullRequestNumber} PR merged - found linked issues`,
-                    [{
-                        type: 'text/plain',
-                        value: `This PR is linked to unclosed issues. Please check if one of these issues should be closed: ${linkedItemsMessagePart}`
-                    }]
-                );
+                completeFunction(context, req, { status: 201, body: { success: true, message: unclosedIssuesNumber } });
             });
         });
 }

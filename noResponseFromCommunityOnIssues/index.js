@@ -31,10 +31,7 @@ module.exports = function (context) {
             });
         }
         context.log(issuesWithoutResponse);
-        functions_1.completeFunctionBySendingMail(context, [{ "to": [{ "email": "nmetulev@microsoft.com" }] }], { email: "sender@contoso.com" }, "No Response From Community On Issues", [{
-                type: 'text/plain',
-                value: JSON.stringify(issuesWithoutResponse)
-            }]);
+        functions_1.completeFunction(context, null, { status: 201, body: issuesWithoutResponse });
     });
 };
 var detectIfNoResponseFromCommunity = function (issue, exclusiveLabels) {

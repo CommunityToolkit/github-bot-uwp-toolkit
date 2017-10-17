@@ -25,10 +25,7 @@ module.exports = function (context, req) {
                 .filter(function (n) { return !!n; });
             if (unclosedIssuesNumber.length <= 0) {
                 context.log('No linked issue detected.');
-                functions_1.completeFunctionBySendingMail(context, [{ "to": [{ "email": "nmetulev@microsoft.com" }] }], { email: "sender@contoso.com" }, "#" + pullRequestNumber + " PR merged - no linked issue", [{
-                        type: 'text/plain',
-                        value: 'No unclosed issue linked to this merged PR.'
-                    }]);
+                functions_1.completeFunction(context, null, { status: 201, body: { success: false, message: 'No unclosed issue linked to this merged PR.' } });
                 return;
             }
             var linkedItemsMessagePart = unclosedIssuesNumber
@@ -39,10 +36,7 @@ module.exports = function (context, req) {
                 github_1.commentGitHubIssue(githubApiHeaders, pullRequest.id, "This PR is linked to unclosed issues. Please check if one of these issues should be closed: " + linkedItemsMessagePart);
             }
             context.log(unclosedIssuesNumber);
-            functions_1.completeFunctionBySendingMail(context, [{ "to": [{ "email": "nmetulev@microsoft.com" }] }], { email: "sender@contoso.com" }, "#" + pullRequestNumber + " PR merged - found linked issues", [{
-                    type: 'text/plain',
-                    value: "This PR is linked to unclosed issues. Please check if one of these issues should be closed: " + linkedItemsMessagePart
-                }]);
+            functions_1.completeFunction(context, req, { status: 201, body: { success: true, message: unclosedIssuesNumber } });
         });
     });
 };
