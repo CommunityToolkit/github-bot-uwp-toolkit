@@ -9,7 +9,7 @@ Bot written in node.js and hosting on Azure Functions to manage issues and Pull 
 This function detects issues without response.
 It automatically send a message to a member of the team.
 
-### closeInactiveIssues
+### inactiveIssues
 
 This function detects inactive issues (a discussion has already started but no one started to work or closed the issue).
 
@@ -41,5 +41,5 @@ These environment variables should be set to launch the bot.
 | GITHUB_BOT_UWP_TOOLKIT_REPO_OWNER             | Target Repository owner (should be "Microsoft") |
 | GITHUB_BOT_UWP_TOOLKIT_REPO_NAME              | Target Repository name (should be "UWP Community Toolkit") |
 | GITHUB_BOT_UWP_TOOLKIT_ACTIVATE_MUTATION      | Activate GitHub mutation calls (false by default) |
-| NUMBER_OF_DAYS_WITHOUT_ACTIVITY               | Number of days without activity to check on `closeInactiveIssues` function (7 days by default) |
+| NUMBER_OF_DAYS_WITHOUT_ACTIVITY               | Number of days without activity to check on `inactiveIssues` function (7 days by default) |
 | NUMBER_OF_DAYS_WITHOUT_RESPONSE               | Number of days without response to check on `noResponseFromCommunityOnIssues` function (7 days by default) |

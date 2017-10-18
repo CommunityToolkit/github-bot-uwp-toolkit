@@ -1,5 +1,0 @@
-{
-    "name": "close-inactive-issues",
-    "version": "0.0.1",
-    "description": "Send alerts and then close GitHub issues if they are inactive"
-}
