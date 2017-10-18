@@ -22,7 +22,7 @@ exports.getAllGitHubIssuesRecursively = function (headers, repoOwner, repoName, 
     });
 };
 var getGitHubIssuesQuery = function (repoOwner, repoName, afterCursor) {
-    return "\n      query { \n        repository(owner: \"" + repoOwner + "\", name: \"" + repoName + "\") { \n          issues(states: [OPEN], first: 50" + (!!afterCursor ? ", after: \"" + afterCursor + "\"" : '') + ") {\n            pageInfo {\n              hasNextPage,\n              endCursor\n            },\n            edges {\n              node {\n                id,\n                number,\n                author {\n                  login\n                },\n                createdAt,\n                comments {\n                    totalCount\n                },\n                lastComment: comments(last: 1) {\n                    edges {\n                      node {\n                        updatedAt\n                      }\n                  }\n                },\n                lastTwoComments: comments(last: 2) {\n                  edges {\n                    node {\n                      author {\n                        login\n                      },\n                      body\n                    }\n                  }\n                },\n                commentAuthors: comments(first: 100) {\n                  edges {\n                    node {\n                      author {\n                        login\n                      }\n                    }\n                  }\n                },\n                labels(first: 10) {\n                  edges {\n                    node {\n                      name\n                    }\n                  }\n                }\n              }\n            }\n          }\n        }\n      }";
+    return "\n      query { \n        repository(owner: \"" + repoOwner + "\", name: \"" + repoName + "\") { \n          issues(states: [OPEN], first: 50" + (!!afterCursor ? ", after: \"" + afterCursor + "\"" : '') + ") {\n            pageInfo {\n              hasNextPage,\n              endCursor\n            },\n            edges {\n              node {\n                id,\n                number,\n                author {\n                  login\n                },\n                createdAt,\n                comments {\n                    totalCount\n                },\n                lastComment: comments(last: 1) {\n                    edges {\n                      node {\n                        updatedAt\n                      }\n                  }\n                },\n                lastTwoComments: comments(last: 2) {\n                  edges {\n                    node {\n                      author {\n                        login\n                      },\n                      body\n                    }\n                  }\n                },\n                commentAuthors: comments(first: 100) {\n                  edges {\n                    node {\n                      author {\n                        login\n                      }\n                    }\n                  }\n                },\n                labels(first: 10) {\n                  edges {\n                    node {\n                      name\n                    }\n                  }\n                },\n                milestone {\n                  number\n                }\n              }\n            }\n          }\n        }\n      }";
 };
 exports.getPullRequest = function (headers, repoOwner, repoName, number, callback) {
     performGitHubGraphqlRequest(headers, {
@@ -49,6 +49,16 @@ var getIssueOrPullRequestLinksQuery = function (repoOwner, repoName, numbers) {
     })
         .join(',');
     return "\n      query {\n        repository(owner: \"" + repoOwner + "\", name: \"" + repoName + "\") {\n          " + resultList + "\n        }\n      }";
+};
+exports.getAllMilestones = function (headers, repoOwner, repoName, callback) {
+    performGitHubGraphqlRequest(headers, {
+        query: getAllMilestonesQuery(repoOwner, repoName)
+    }, function (response) {
+        callback(response.data.milestones.edges.map(function (edge) { return edge.node; }));
+    });
+};
+var getAllMilestonesQuery = function (repoOwner, repoName) {
+    return "\n    query {\n      repository(owner: \"" + repoOwner + "\", name: \"" + repoName + "\") {\n        milestones(first: 100) {\n          edges {\n            node {\n              id,\n              state,\n              dueOn,\n              number\n            }\n          }\n        }\n      }\n    }";
 };
 exports.commentGitHubIssue = function (headers, issueId, comment) {
     performGitHubGraphqlRequest(headers, {

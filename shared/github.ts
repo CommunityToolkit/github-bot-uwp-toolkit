@@ -1,5 +1,5 @@
 import { performHttpRequest } from './http';
-import { IssueNode, PullRequestNode, IssueOrPullRequestLinkNode } from './models';
+import { IssueNode, PullRequestNode, IssueOrPullRequestLinkNode, Milestone } from './models';
 
 // private functions
 
@@ -78,6 +78,9 @@ const getGitHubIssuesQuery = (repoOwner: string, repoName: string, afterCursor?:
                       name
                     }
                   }
+                },
+                milestone {
+                  number
                 }
               }
             }
@@ -144,6 +147,31 @@ const getIssueOrPullRequestLinksQuery = (repoOwner: string, repoName: string, nu
           ${resultList}
         }
       }`;
+}
+
+export const getAllMilestones = (headers: any, repoOwner: string, repoName: string,  callback: (milestones: Milestone[]) => any) => {
+  performGitHubGraphqlRequest(headers, {
+    query: getAllMilestonesQuery(repoOwner, repoName)
+  }, (response) => {
+    callback(response.data.milestones.edges.map(edge => edge.node));
+  });
+}
+const getAllMilestonesQuery = (repoOwner: string, repoName: string) => {
+  return `
+    query {
+      repository(owner: "${repoOwner}", name: "${repoName}") {
+        milestones(first: 100) {
+          edges {
+            node {
+              id,
+              state,
+              dueOn,
+              number
+            }
+          }
+        }
+      }
+    }`;
 }
 
 // mutations

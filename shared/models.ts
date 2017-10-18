@@ -41,6 +41,9 @@ export type IssueNode = {
             }
         }[];
     };
+    milestone: {
+        number: number;
+    };
 }
 
 export type PullRequestNode = {
@@ -66,3 +69,10 @@ export type IssueOrPullRequestLinkNode = {
 } | {
         __typename: 'PullRequest';
     };
+
+export type Milestone = {
+    id: string;
+    state: 'CLOSED' | 'OPEN';
+    dueOn: string;
+    number: number;
+}
