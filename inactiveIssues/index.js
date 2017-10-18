@@ -27,37 +27,20 @@ module.exports = function (context) {
                 .filter(function (issue) {
                 return !isIssueContainsExclusiveLabels(issue, exclusiveLabels);
             });
-            var issuesWithoutActivity = issuesToCheck.filter(function (issue) {
-                return detectIssueWithoutActivity(issue);
+            var issuesInTheCurrentMilestone = issuesToCheck
+                .filter(function (issue) { return issue.milestone && issue.milestone.number === currentMilestone.number; });
+            var issuesNotInMilestone = issuesToCheck
+                .filter(function (issue) { return issue.milestone && issue.milestone.number < currentMilestone.number; });
+            var inactiveIssuesInTheCurrentMilestone = issuesInTheCurrentMilestone.filter(function (issue) {
+                return detectIssueWithoutActivity(issue, 14);
             });
-            var decisions = issuesWithoutActivity.map(function (issue) {
-                var numberOfAlertsAlreadySent = detectNumberOfAlertsAlreadySent(process.env.GITHUB_BOT_UWP_TOOLKIT_USERNAME, issue);
-                if (numberOfAlertsAlreadySent === 2) {
-                    return {
-                        issue: issue,
-                        numberOfAlertsAlreadySent: numberOfAlertsAlreadySent,
-                        decision: 'close'
-                    };
-                }
-                else {
-                    return {
-                        issue: issue,
-                        numberOfAlertsAlreadySent: numberOfAlertsAlreadySent,
-                        decision: 'alert'
-                    };
-                }
+            var numberOfDaysWithoutActivity = parseInt(process.env.NUMBER_OF_DAYS_WITHOUT_ACTIVITY || '7');
+            var inactiveIssuesNotInMilestone = issuesNotInMilestone.filter(function (issue) {
+                return detectIssueWithoutActivity(issue, numberOfDaysWithoutActivity);
             });
-            if (process.env.GITHUB_BOT_UWP_TOOLKIT_ACTIVATE_MUTATION) {
-                decisions.filter(function (d) { return d.decision === 'alert'; }).forEach(function (d) {
-                    var numberOfDaysWithoutActivity = parseInt(process.env.NUMBER_OF_DAYS_WITHOUT_ACTIVITY || '7');
-                    var daysBeforeClosingIssue = numberOfDaysWithoutActivity * (2 - d.numberOfAlertsAlreadySent);
-                    github_1.commentGitHubIssue(githubApiHeaders, d.issue.id, "This issue seems inactive. It will automatically be closed in " + daysBeforeClosingIssue + " days if there is no activity.");
-                });
-                decisions.filter(function (d) { return d.decision === 'close'; }).forEach(function (d) {
-                    github_1.commentGitHubIssue(githubApiHeaders, d.issue.id, 'Issue is inactive. It was automatically closed.');
-                    github_1.closeGitHubIssue(githubApiHeaders, process.env.GITHUB_BOT_UWP_TOOLKIT_REPO_OWNER, process.env.GITHUB_BOT_UWP_TOOLKIT_REPO_NAME, d.issue.number, d.issue.id);
-                });
-            }
+            var decisions1 = makeDecisionsForIssuesInCurrentMilestone(githubApiHeaders, inactiveIssuesInTheCurrentMilestone);
+            var decisions2 = makeDecisionsForIssuesNotInMilestone(githubApiHeaders, inactiveIssuesNotInMilestone);
+            var decisions = decisions1.concat(decisions2);
             context.log(decisions);
             functions_1.completeFunction(context, null, { status: 201, body: decisions });
         });
@@ -77,13 +60,12 @@ var detectNumberOfAlertsAlreadySent = function (botUsername, issue) {
     }
     return numberOfAlertsAlreadySent;
 };
-var detectIssueWithoutActivity = function (issue) {
+var detectIssueWithoutActivity = function (issue, numberOfDaysWithoutActivity) {
     var loginsOfAuthors = utils_1.distinct(issue.commentAuthors.edges.map(function (edge) { return edge.node.author.login; }));
     var issueHasResponse = utils_1.distinct(loginsOfAuthors.filter(function (c) { return c !== issue.author.login; })).length > 0;
     if (issueHasResponse) {
         var lastComment = issue.lastComment.edges[0];
         var today = new Date();
-        var numberOfDaysWithoutActivity = parseInt(process.env.NUMBER_OF_DAYS_WITHOUT_ACTIVITY || '7');
         if (lastComment && new Date(lastComment.node.updatedAt) < utils_1.addDays(today, -numberOfDaysWithoutActivity)) {
             return true;
         }
@@ -96,5 +78,51 @@ var isIssueContainsExclusiveLabels = function (issue, exclusiveLabels) {
         .some(function (label) {
         return exclusiveLabels.some(function (l) { return l === label.name; });
     });
+};
+var makeDecisionsForIssuesInCurrentMilestone = function (githubApiHeaders, issues) {
+    var decisions = issues.map(function (issue) {
+        return {
+            issue: issue,
+            numberOfAlertsAlreadySent: null,
+            decision: 'alert'
+        };
+    });
+    if (process.env.GITHUB_BOT_UWP_TOOLKIT_ACTIVATE_MUTATION) {
+        decisions.forEach(function (d) {
+            github_1.commentGitHubIssue(githubApiHeaders, d.issue.id, "This issue seems inactive. Do you need help to complete this issue?");
+        });
+    }
+    return decisions;
+};
+var makeDecisionsForIssuesNotInMilestone = function (githubApiHeaders, issues) {
+    var decisions = issues.map(function (issue) {
+        var numberOfAlertsAlreadySent = detectNumberOfAlertsAlreadySent(process.env.GITHUB_BOT_UWP_TOOLKIT_USERNAME, issue);
+        if (numberOfAlertsAlreadySent === 2) {
+            return {
+                issue: issue,
+                numberOfAlertsAlreadySent: numberOfAlertsAlreadySent,
+                decision: 'close'
+            };
+        }
+        else {
+            return {
+                issue: issue,
+                numberOfAlertsAlreadySent: numberOfAlertsAlreadySent,
+                decision: 'alert'
+            };
+        }
+    });
+    if (process.env.GITHUB_BOT_UWP_TOOLKIT_ACTIVATE_MUTATION) {
+        decisions.filter(function (d) { return d.decision === 'alert'; }).forEach(function (d) {
+            var numberOfDaysWithoutActivity = parseInt(process.env.NUMBER_OF_DAYS_WITHOUT_ACTIVITY || '7');
+            var daysBeforeClosingIssue = numberOfDaysWithoutActivity * (2 - d.numberOfAlertsAlreadySent);
+            github_1.commentGitHubIssue(githubApiHeaders, d.issue.id, "This issue seems inactive. It will automatically be closed in " + daysBeforeClosingIssue + " days if there is no activity.");
+        });
+        decisions.filter(function (d) { return d.decision === 'close'; }).forEach(function (d) {
+            github_1.commentGitHubIssue(githubApiHeaders, d.issue.id, 'Issue is inactive. It was automatically closed.');
+            github_1.closeGitHubIssue(githubApiHeaders, process.env.GITHUB_BOT_UWP_TOOLKIT_REPO_OWNER, process.env.GITHUB_BOT_UWP_TOOLKIT_REPO_NAME, d.issue.number, d.issue.id);
+        });
+    }
+    return decisions;
 };
 //# sourceMappingURL=index.js.map

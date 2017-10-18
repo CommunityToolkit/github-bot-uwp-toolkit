@@ -43,61 +43,25 @@ module.exports = (context) => {
                             return !isIssueContainsExclusiveLabels(issue, exclusiveLabels);
                         });
 
-                    // check issues that match the filter
-                    const issuesWithoutActivity = issuesToCheck.filter(issue => {
-                        return detectIssueWithoutActivity(issue);
+                    const issuesInTheCurrentMilestone = issuesToCheck
+                        .filter(issue => issue.milestone && issue.milestone.number === currentMilestone.number);
+
+                    const issuesNotInMilestone = issuesToCheck
+                        .filter(issue => issue.milestone && issue.milestone.number < currentMilestone.number);
+
+                    const inactiveIssuesInTheCurrentMilestone = issuesInTheCurrentMilestone.filter(issue => {
+                        return detectIssueWithoutActivity(issue, 14);
                     });
 
-                    // take a decision about the issue (send a new alert or close it)
-                    const decisions = issuesWithoutActivity.map<IssueActivityDecision>(issue => {
-                        const numberOfAlertsAlreadySent = detectNumberOfAlertsAlreadySent(
-                            process.env.GITHUB_BOT_UWP_TOOLKIT_USERNAME,
-                            issue);
-
-                        if (numberOfAlertsAlreadySent === 2) {
-                            return {
-                                issue: issue,
-                                numberOfAlertsAlreadySent: numberOfAlertsAlreadySent,
-                                decision: 'close'
-                            };
-                        } else {
-                            return {
-                                issue: issue,
-                                numberOfAlertsAlreadySent: numberOfAlertsAlreadySent,
-                                decision: 'alert'
-                            };
-                        }
+                    const numberOfDaysWithoutActivity = parseInt(process.env.NUMBER_OF_DAYS_WITHOUT_ACTIVITY || '7');
+                    const inactiveIssuesNotInMilestone = issuesNotInMilestone.filter(issue => {
+                        return detectIssueWithoutActivity(issue, numberOfDaysWithoutActivity);
                     });
 
-                    if (process.env.GITHUB_BOT_UWP_TOOLKIT_ACTIVATE_MUTATION) {
-                        // send new alerts if it was that decision
-                        decisions.filter(d => d.decision === 'alert').forEach(d => {
-                            // send a message to the creator that issue will be close in X days
-                            const numberOfDaysWithoutActivity = parseInt(process.env.NUMBER_OF_DAYS_WITHOUT_ACTIVITY || '7');
-                            const daysBeforeClosingIssue = numberOfDaysWithoutActivity * (2 - d.numberOfAlertsAlreadySent);
+                    const decisions1 = makeDecisionsForIssuesInCurrentMilestone(githubApiHeaders, inactiveIssuesInTheCurrentMilestone);
+                    const decisions2 = makeDecisionsForIssuesNotInMilestone(githubApiHeaders, inactiveIssuesNotInMilestone);
 
-                            commentGitHubIssue(
-                                githubApiHeaders,
-                                d.issue.id,
-                                `This issue seems inactive. It will automatically be closed in ${daysBeforeClosingIssue} days if there is no activity.`);
-                        });
-
-                        // close issue if it was that decision
-                        decisions.filter(d => d.decision === 'close').forEach(d => {
-                            // close issue and send a message that issue got no answer from the creator
-                            commentGitHubIssue(
-                                githubApiHeaders,
-                                d.issue.id,
-                                'Issue is inactive. It was automatically closed.');
-
-                            closeGitHubIssue(
-                                githubApiHeaders,
-                                process.env.GITHUB_BOT_UWP_TOOLKIT_REPO_OWNER,
-                                process.env.GITHUB_BOT_UWP_TOOLKIT_REPO_NAME,
-                                d.issue.number,
-                                d.issue.id);
-                        });
-                    }
+                    const decisions = decisions1.concat(decisions2);
 
                     context.log(decisions);
                     completeFunction(context, null, { status: 201, body: decisions });
@@ -131,7 +95,7 @@ const detectNumberOfAlertsAlreadySent = (botUsername: string, issue: IssueNode):
     return numberOfAlertsAlreadySent;
 }
 
-const detectIssueWithoutActivity = (issue: IssueNode): boolean => {
+const detectIssueWithoutActivity = (issue: IssueNode, numberOfDaysWithoutActivity: number): boolean => {
     // check if at least two users write a message (one user other than the author)
     const loginsOfAuthors: string[] = distinct(issue.commentAuthors.edges.map(edge => edge.node.author.login));
     const issueHasResponse = distinct(loginsOfAuthors.filter(c => c !== issue.author.login)).length > 0;
@@ -140,7 +104,6 @@ const detectIssueWithoutActivity = (issue: IssueNode): boolean => {
         // check if last message was sent x days ago
         const lastComment = issue.lastComment.edges[0];
         const today = new Date();
-        const numberOfDaysWithoutActivity = parseInt(process.env.NUMBER_OF_DAYS_WITHOUT_ACTIVITY || '7');
 
         if (lastComment && new Date(lastComment.node.updatedAt) < addDays(today, -numberOfDaysWithoutActivity)) {
             return true;
@@ -150,11 +113,86 @@ const detectIssueWithoutActivity = (issue: IssueNode): boolean => {
     return false;
 }
 
-
 const isIssueContainsExclusiveLabels = (issue: IssueNode, exclusiveLabels: string[]): boolean => {
     return issue.labels.edges
         .map(edge => edge.node)
         .some(label => {
             return exclusiveLabels.some(l => l === label.name);
         });
+}
+
+const makeDecisionsForIssuesInCurrentMilestone = (githubApiHeaders: any, issues: IssueNode[]): IssueActivityDecision[] => {
+    const decisions = issues.map<IssueActivityDecision>(issue => {
+        return {
+            issue: issue,
+            numberOfAlertsAlreadySent: null,
+            decision: 'alert'
+        };
+    });
+
+    if (process.env.GITHUB_BOT_UWP_TOOLKIT_ACTIVATE_MUTATION) {
+        decisions.forEach(d => {
+            commentGitHubIssue(
+                githubApiHeaders,
+                d.issue.id,
+                `This issue seems inactive. Do you need help to complete this issue?`);
+        });
+    }
+
+    return decisions;
+}
+
+const makeDecisionsForIssuesNotInMilestone = (githubApiHeaders: any, issues: IssueNode[]): IssueActivityDecision[] => {
+    // take a decision about the issue (send a new alert or close it)
+    const decisions = issues.map<IssueActivityDecision>(issue => {
+        const numberOfAlertsAlreadySent = detectNumberOfAlertsAlreadySent(
+            process.env.GITHUB_BOT_UWP_TOOLKIT_USERNAME,
+            issue);
+
+        if (numberOfAlertsAlreadySent === 2) {
+            return {
+                issue: issue,
+                numberOfAlertsAlreadySent: numberOfAlertsAlreadySent,
+                decision: 'close'
+            };
+        } else {
+            return {
+                issue: issue,
+                numberOfAlertsAlreadySent: numberOfAlertsAlreadySent,
+                decision: 'alert'
+            };
+        }
+    });
+
+    if (process.env.GITHUB_BOT_UWP_TOOLKIT_ACTIVATE_MUTATION) {
+        // send new alerts if it was that decision
+        decisions.filter(d => d.decision === 'alert').forEach(d => {
+            // send a message to the creator that issue will be close in X days
+            const numberOfDaysWithoutActivity = parseInt(process.env.NUMBER_OF_DAYS_WITHOUT_ACTIVITY || '7');
+            const daysBeforeClosingIssue = numberOfDaysWithoutActivity * (2 - d.numberOfAlertsAlreadySent);
+
+            commentGitHubIssue(
+                githubApiHeaders,
+                d.issue.id,
+                `This issue seems inactive. It will automatically be closed in ${daysBeforeClosingIssue} days if there is no activity.`);
+        });
+
+        // close issue if it was that decision
+        decisions.filter(d => d.decision === 'close').forEach(d => {
+            // close issue and send a message that issue got no answer from the creator
+            commentGitHubIssue(
+                githubApiHeaders,
+                d.issue.id,
+                'Issue is inactive. It was automatically closed.');
+
+            closeGitHubIssue(
+                githubApiHeaders,
+                process.env.GITHUB_BOT_UWP_TOOLKIT_REPO_OWNER,
+                process.env.GITHUB_BOT_UWP_TOOLKIT_REPO_NAME,
+                d.issue.number,
+                d.issue.id);
+        });
+    }
+
+    return decisions;
 }
