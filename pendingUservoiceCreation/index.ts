@@ -1,5 +1,5 @@
 import { addDays } from '../shared/utils';
-import { completeFunctionBySendingMail } from '../shared/functions';
+import { completeFunction } from '../shared/functions';
 import { getAllGitHubIssuesRecursivelyFilterWithLabels, commentGitHubIssue } from '../shared/github';
 
 module.exports = (context) => {
@@ -16,6 +16,7 @@ module.exports = (context) => {
         ["pending-uservoice-creation"],
         (issues) => {
             context.log(`Total of ${issues.length} issues pending uservoice creation.`);
+            context.log(issues);
 
             const issuesWithoutActivity = issues.filter(issue => {
                 // check if last message was sent x days ago
@@ -29,21 +30,15 @@ module.exports = (context) => {
                 return false;
             });
 
-            // send a comment to create the uservoice entry
-            issuesWithoutActivity.forEach(issue => {
-                commentGitHubIssue(githubApiHeaders, issue.id, 'Seems like there is no uservoice entry created.');
-            });
+            if (process.env.GITHUB_BOT_UWP_TOOLKIT_ACTIVATE_MUTATION) {
+                // send a comment to create the uservoice entry
+                issuesWithoutActivity.forEach(issue => {
+                    commentGitHubIssue(githubApiHeaders, issue.id, 'Seems like there is no uservoice entry created.');
+                });
+            }
 
+            context.log(`Total of ${issuesWithoutActivity.length} issues pending uservoice creation AND inactive.`);
             context.log(issuesWithoutActivity);
-            completeFunctionBySendingMail(
-                context,
-                [{ "to": [{ "email": "nmetulev@microsoft.com" }] }],
-                { email: "sender@contoso.com" },
-                "Pending Uservoice Creation",
-                [{
-                    type: 'text/plain',
-                    value: JSON.stringify(issuesWithoutActivity)
-                }]
-            );
+            completeFunction(context, null, issuesWithoutActivity);
         });
 };

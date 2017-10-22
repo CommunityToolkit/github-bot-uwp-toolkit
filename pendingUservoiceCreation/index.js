@@ -10,6 +10,7 @@ module.exports = function (context) {
     };
     github_1.getAllGitHubIssuesRecursivelyFilterWithLabels(githubApiHeaders, process.env.GITHUB_BOT_UWP_TOOLKIT_REPO_OWNER, process.env.GITHUB_BOT_UWP_TOOLKIT_REPO_NAME, null, ["pending-uservoice-creation"], function (issues) {
         context.log("Total of " + issues.length + " issues pending uservoice creation.");
+        context.log(issues);
         var issuesWithoutActivity = issues.filter(function (issue) {
             var lastComment = issue.lastComment.edges[0];
             var today = new Date();
@@ -19,14 +20,14 @@ module.exports = function (context) {
             }
             return false;
         });
-        issuesWithoutActivity.forEach(function (issue) {
-            github_1.commentGitHubIssue(githubApiHeaders, issue.id, 'Seems like there is no uservoice entry created.');
-        });
+        if (process.env.GITHUB_BOT_UWP_TOOLKIT_ACTIVATE_MUTATION) {
+            issuesWithoutActivity.forEach(function (issue) {
+                github_1.commentGitHubIssue(githubApiHeaders, issue.id, 'Seems like there is no uservoice entry created.');
+            });
+        }
+        context.log("Total of " + issuesWithoutActivity.length + " issues pending uservoice creation AND inactive.");
         context.log(issuesWithoutActivity);
-        functions_1.completeFunctionBySendingMail(context, [{ "to": [{ "email": "nmetulev@microsoft.com" }] }], { email: "sender@contoso.com" }, "Pending Uservoice Creation", [{
-                type: 'text/plain',
-                value: JSON.stringify(issuesWithoutActivity)
-            }]);
+        functions_1.completeFunction(context, null, issuesWithoutActivity);
     });
 };
 //# sourceMappingURL=index.js.map
