@@ -54,7 +54,7 @@ exports.getAllMilestones = function (headers, repoOwner, repoName, callback) {
     performGitHubGraphqlRequest(headers, {
         query: getAllMilestonesQuery(repoOwner, repoName)
     }, function (response) {
-        callback(response.data.milestones.edges.map(function (edge) { return edge.node; }));
+        callback(response.data.repository.milestones.edges.map(function (edge) { return edge.node; }));
     });
 };
 var getAllMilestonesQuery = function (repoOwner, repoName) {

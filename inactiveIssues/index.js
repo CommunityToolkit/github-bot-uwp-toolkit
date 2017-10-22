@@ -84,7 +84,8 @@ var makeDecisionsForIssuesInCurrentMilestone = function (githubApiHeaders, issue
         return {
             issue: issue,
             numberOfAlertsAlreadySent: null,
-            decision: 'alert'
+            decision: 'alert',
+            inCurrentMilestone: true
         };
     });
     if (process.env.GITHUB_BOT_UWP_TOOLKIT_ACTIVATE_MUTATION) {
@@ -101,14 +102,16 @@ var makeDecisionsForIssuesNotInMilestone = function (githubApiHeaders, issues) {
             return {
                 issue: issue,
                 numberOfAlertsAlreadySent: numberOfAlertsAlreadySent,
-                decision: 'close'
+                decision: 'close',
+                inCurrentMilestone: false
             };
         }
         else {
             return {
                 issue: issue,
                 numberOfAlertsAlreadySent: numberOfAlertsAlreadySent,
-                decision: 'alert'
+                decision: 'alert',
+                inCurrentMilestone: false
             };
         }
     });

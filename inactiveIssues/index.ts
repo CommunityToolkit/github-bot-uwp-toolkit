@@ -73,6 +73,7 @@ type IssueActivityDecision = {
     issue: IssueNode;
     numberOfAlertsAlreadySent: number;
     decision: 'close' | 'alert';
+    inCurrentMilestone: boolean;
 }
 
 const detectNumberOfAlertsAlreadySent = (botUsername: string, issue: IssueNode): number => {
@@ -126,7 +127,8 @@ const makeDecisionsForIssuesInCurrentMilestone = (githubApiHeaders: any, issues:
         return {
             issue: issue,
             numberOfAlertsAlreadySent: null,
-            decision: 'alert'
+            decision: 'alert',
+            inCurrentMilestone: true
         };
     });
 
@@ -153,13 +155,15 @@ const makeDecisionsForIssuesNotInMilestone = (githubApiHeaders: any, issues: Iss
             return {
                 issue: issue,
                 numberOfAlertsAlreadySent: numberOfAlertsAlreadySent,
-                decision: 'close'
+                decision: 'close',
+                inCurrentMilestone: false
             };
         } else {
             return {
                 issue: issue,
                 numberOfAlertsAlreadySent: numberOfAlertsAlreadySent,
-                decision: 'alert'
+                decision: 'alert',
+                inCurrentMilestone: false
             };
         }
     });

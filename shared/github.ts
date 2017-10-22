@@ -153,7 +153,7 @@ export const getAllMilestones = (headers: any, repoOwner: string, repoName: stri
   performGitHubGraphqlRequest(headers, {
     query: getAllMilestonesQuery(repoOwner, repoName)
   }, (response) => {
-    callback(response.data.milestones.edges.map(edge => edge.node));
+    callback(response.data.repository.milestones.edges.map(edge => edge.node));
   });
 }
 const getAllMilestonesQuery = (repoOwner: string, repoName: string) => {
