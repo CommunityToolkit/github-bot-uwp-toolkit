@@ -1,5 +1,5 @@
 import { addDays, distinct } from '../shared/utils';
-import { completeFunctionBySendingMail } from '../shared/functions';
+import { completeFunction } from '../shared/functions';
 import { IssueNode } from '../shared/models';
 import { getAllGitHubIssuesRecursively, commentGitHubIssue, closeGitHubIssue } from '../shared/github';
 
@@ -15,7 +15,13 @@ module.exports = (context) => {
         process.env.GITHUB_BOT_UWP_TOOLKIT_REPO_NAME,
         null,
         (issues) => {
-            const exclusiveLabels = ['PR in progress', 'work in progress'];
+            const exclusiveLabels = [
+                'PR in progress', 
+                'work in progress',
+                'help wanted',
+                'uservoice-entry-created',
+                'mute-bot'
+            ];
 
             // check issues that match the filter
             const issuesWithoutActivity = issues.filter(issue => {
@@ -74,16 +80,7 @@ module.exports = (context) => {
             }
 
             context.log(decisions);
-            completeFunctionBySendingMail(
-                context,
-                [{ "to": [{ "email": "nmetulev@microsoft.com" }] }],
-                { email: "sender@contoso.com" },
-                "No Activity On Issues",
-                [{
-                    type: 'text/plain',
-                    value: JSON.stringify(decisions)
-                }]
-            );
+            completeFunction(context, null, { status: 201, body: decisions });
         });
 }
 

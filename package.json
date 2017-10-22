@@ -3,6 +3,6 @@
   "version": "0.1.0",
   "dependencies": {},
   "devDependencies": {
-    "@types/node": "^8.0.26"
+    "@types/node": "^8.0.41"
   }
 }
