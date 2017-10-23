@@ -22,7 +22,7 @@ module.exports = (context) => {
                 // check if last message was sent x days ago
                 const lastComment = issue.lastComment.edges[0];
                 const today = new Date();
-                const numberOfDaysWithoutActivity = 7;
+                const numberOfDaysWithoutActivity = parseInt(process.env.NUMBER_OF_DAYS_WITHOUT_ACTIVITY || '7');
 
                 if (lastComment && new Date(lastComment.node.updatedAt) < addDays(today, -numberOfDaysWithoutActivity)) {
                     return true;

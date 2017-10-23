@@ -14,7 +14,7 @@ module.exports = function (context) {
         var issuesWithoutActivity = issues.filter(function (issue) {
             var lastComment = issue.lastComment.edges[0];
             var today = new Date();
-            var numberOfDaysWithoutActivity = 7;
+            var numberOfDaysWithoutActivity = parseInt(process.env.NUMBER_OF_DAYS_WITHOUT_ACTIVITY || '7');
             if (lastComment && new Date(lastComment.node.updatedAt) < utils_1.addDays(today, -numberOfDaysWithoutActivity)) {
                 return true;
             }
