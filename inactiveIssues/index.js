@@ -30,11 +30,11 @@ module.exports = function (context) {
             var issuesInTheCurrentMilestone = issuesToCheck
                 .filter(function (issue) { return issue.milestone && issue.milestone.number === currentMilestone.number; });
             var issuesNotInMilestone = issuesToCheck
-                .filter(function (issue) { return issue.milestone && issue.milestone.number < currentMilestone.number; });
-            var inactiveIssuesInTheCurrentMilestone = issuesInTheCurrentMilestone.filter(function (issue) {
-                return detectIssueWithoutActivity(issue, 14);
-            });
+                .filter(function (issue) { return !issue.milestone || issue.milestone.number < currentMilestone.number; });
             var numberOfDaysWithoutActivity = parseInt(process.env.NUMBER_OF_DAYS_WITHOUT_ACTIVITY || '7');
+            var inactiveIssuesInTheCurrentMilestone = issuesInTheCurrentMilestone.filter(function (issue) {
+                return detectIssueWithoutActivity(issue, numberOfDaysWithoutActivity * 2);
+            });
             var inactiveIssuesNotInMilestone = issuesNotInMilestone.filter(function (issue) {
                 return detectIssueWithoutActivity(issue, numberOfDaysWithoutActivity);
             });

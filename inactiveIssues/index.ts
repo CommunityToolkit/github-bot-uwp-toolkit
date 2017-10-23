@@ -47,13 +47,14 @@ module.exports = (context) => {
                         .filter(issue => issue.milestone && issue.milestone.number === currentMilestone.number);
 
                     const issuesNotInMilestone = issuesToCheck
-                        .filter(issue => issue.milestone && issue.milestone.number < currentMilestone.number);
-
-                    const inactiveIssuesInTheCurrentMilestone = issuesInTheCurrentMilestone.filter(issue => {
-                        return detectIssueWithoutActivity(issue, 14);
-                    });
+                        .filter(issue => !issue.milestone || issue.milestone.number < currentMilestone.number);
 
                     const numberOfDaysWithoutActivity = parseInt(process.env.NUMBER_OF_DAYS_WITHOUT_ACTIVITY || '7');
+
+                    const inactiveIssuesInTheCurrentMilestone = issuesInTheCurrentMilestone.filter(issue => {
+                        return detectIssueWithoutActivity(issue, numberOfDaysWithoutActivity * 2);
+                    });
+
                     const inactiveIssuesNotInMilestone = issuesNotInMilestone.filter(issue => {
                         return detectIssueWithoutActivity(issue, numberOfDaysWithoutActivity);
                     });
