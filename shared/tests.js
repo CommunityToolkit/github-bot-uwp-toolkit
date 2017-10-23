@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var fs = require("fs");
 var writeLog = function (filename, content, callback) {
-    fs.appendFile(filename, JSON.stringify(content), 'utf8', function (err) {
+    fs.appendFile(filename, JSON.stringify(content) + '\r\n', 'utf8', function (err) {
         if (err) {
             callback(err);
             return;

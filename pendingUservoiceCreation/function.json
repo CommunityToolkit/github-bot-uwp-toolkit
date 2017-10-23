@@ -1,0 +1,15 @@
+{
+    "bindings": [
+        {
+            "schedule": "0 0 0 * * *",
+            "name": "inputtimer",
+            "type": "timerTrigger",
+            "direction": "in"
+        },
+        {
+            "type": "http",
+            "direction": "out",
+            "name": "$return"
+        }
+    ]
+}

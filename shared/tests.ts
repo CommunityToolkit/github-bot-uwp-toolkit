@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 
 const writeLog = (filename: string, content: any, callback?: (err?: NodeJS.ErrnoException) => any) => {
-    fs.appendFile(filename, JSON.stringify(content), 'utf8', (err) => {
+    fs.appendFile(filename, JSON.stringify(content) + '\r\n', 'utf8', (err) => {
         if (err) {
             callback(err);
             return;
