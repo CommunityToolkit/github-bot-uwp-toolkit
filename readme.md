@@ -22,6 +22,10 @@ And the third time, the issue is closed
 This function listens a GitHub webhook event when a PR is merged.
 Then, using the `pull_request` it will detect the linked issues that are not closed and send a message with the id/number of issues left open.
 
+### pendingUservoiceCreation
+
+This function detects issues with `pending-uservoice-creation` label.
+
 ## How to use?
 
 1. First, build the project using `tsc` command line.
