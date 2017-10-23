@@ -1,0 +1,5 @@
+{
+    "name": "inactive-issues",
+    "version": "0.0.1",
+    "description": "Send alerts and/or close GitHub issues if they are inactive"
+}
