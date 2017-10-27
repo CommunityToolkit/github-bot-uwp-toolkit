@@ -108,7 +108,8 @@ const getGitHubIssuesQuery = (repoOwner: string, repoName: string, afterCursor?:
                   }
                 },
                 milestone {
-                  number
+                  number,
+                  state
                 }
               }
             }

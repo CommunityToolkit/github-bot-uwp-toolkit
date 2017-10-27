@@ -22,7 +22,7 @@ module.exports = function (context) {
             ];
             var issuesToCheck = issues
                 .filter(function (issue) {
-                return (!issue.milestone || issue.milestone.number <= currentMilestone.number);
+                return (!issue.milestone || issue.milestone.number == currentMilestone.number || issue.milestone.state === 'CLOSED');
             })
                 .filter(function (issue) {
                 return !isIssueContainsExclusiveLabels(issue, exclusiveLabels);
@@ -30,7 +30,7 @@ module.exports = function (context) {
             var issuesInTheCurrentMilestone = issuesToCheck
                 .filter(function (issue) { return issue.milestone && issue.milestone.number === currentMilestone.number; });
             var issuesNotInMilestone = issuesToCheck
-                .filter(function (issue) { return !issue.milestone || issue.milestone.number < currentMilestone.number; });
+                .filter(function (issue) { return !issue.milestone || issue.milestone.state === 'CLOSED'; });
             var numberOfDaysWithoutActivity = parseInt(process.env.NUMBER_OF_DAYS_WITHOUT_ACTIVITY || '7');
             var inactiveIssuesInTheCurrentMilestone = issuesInTheCurrentMilestone.filter(function (issue) {
                 return detectIssueWithoutActivity(issue, numberOfDaysWithoutActivity * 2);
