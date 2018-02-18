@@ -88,6 +88,26 @@ exports.getAllMilestones = function (headers, repoOwner, repoName, callback) {
 var getAllMilestonesQuery = function (repoOwner, repoName) {
     return "\n    query {\n      repository(owner: \"" + repoOwner + "\", name: \"" + repoName + "\") {\n        milestones(first: 100) {\n          edges {\n            node {\n              id,\n              state,\n              dueOn,\n              number\n            }\n          }\n        }\n      }\n    }";
 };
+exports.getIssuesLabels = function (headers, repoOwner, repoName, numbers, callback) {
+    performGitHubGraphqlRequest(headers, {
+        query: getIssuesLabelsQuery(repoOwner, repoName, numbers)
+    }, function (response) {
+        var results = numbers
+            .map(function (n, index) { return ({
+            number: n,
+            labels: response.data.repository['result' + index].labels.edges.map(function (edge) { return edge.node.name; })
+        }); });
+        callback(results);
+    });
+};
+var getIssuesLabelsQuery = function (repoOwner, repoName, numbers) {
+    var resultList = numbers
+        .map(function (n, index) {
+        return "\n            result" + index + ": issue(number: " + n + ") {\n              labels(first: 100) {\n                edges {\n                  node {\n                    name\n                  }\n                }\n              }\n            }";
+    })
+        .join(',');
+    return "\n    query {\n      repository(owner: \"" + repoOwner + "\", name: \"" + repoName + "\") {\n        " + resultList + "\n      }\n    }";
+};
 exports.commentGitHubIssue = function (headers, issueId, comment) {
     performGitHubGraphqlRequest(headers, {
         query: commentGitHubIssueMutation(issueId, comment)
@@ -111,5 +131,10 @@ exports.closeGitHubIssue = function (headers, owner, repo, issueNumber, issueId)
 };
 var closeGitHubIssueMutation = function (issueId) {
     return "\n      mutation {\n        closeIssue(input: { subjectId: \"" + issueId + "\" }) {\n          subject {\n            id\n          }\n        }\n      }";
+};
+exports.setLabelsForIssue = function (headers, owner, repo, issueNumber, labels) {
+    performGitHubRestRequest(headers, "/repos/" + owner + "/" + repo + "/issues/" + issueNumber, 'PATCH', {
+        labels: labels
+    });
 };
 //# sourceMappingURL=github.js.map

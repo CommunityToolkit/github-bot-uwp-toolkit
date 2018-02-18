@@ -1,0 +1,5 @@
+{
+    "name": "auto-label-pr-in-progress",
+    "version": "0.0.1",
+    "description": "Automatically add/remove label PR in progress on issues linked to a PR"
+}

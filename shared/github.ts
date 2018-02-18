@@ -1,5 +1,5 @@
 import { performHttpRequest } from './http';
-import { IssueNode, PullRequestNode, IssueOrPullRequestLinkNode, Milestone } from './models';
+import { IssueNode, PullRequestNode, IssueOrPullRequestLinkNode, Milestone, IssueWithLabels } from './models';
 
 // private functions
 
@@ -178,7 +178,7 @@ const getIssueOrPullRequestLinksQuery = (repoOwner: string, repoName: string, nu
       }`;
 }
 
-export const getAllMilestones = (headers: any, repoOwner: string, repoName: string,  callback: (milestones: Milestone[]) => any) => {
+export const getAllMilestones = (headers: any, repoOwner: string, repoName: string, callback: (milestones: Milestone[]) => any) => {
   performGitHubGraphqlRequest(headers, {
     query: getAllMilestonesQuery(repoOwner, repoName)
   }, (response) => {
@@ -203,6 +203,42 @@ const getAllMilestonesQuery = (repoOwner: string, repoName: string) => {
     }`;
 }
 
+export const getIssuesLabels = (headers: any, repoOwner: string, repoName: string, numbers: number[], callback: (issuesWithLabels: IssueWithLabels[]) => any) => {
+  performGitHubGraphqlRequest(headers, {
+    query: getIssuesLabelsQuery(repoOwner, repoName, numbers)
+  }, (response) => {
+    const results = numbers
+      .map((n, index) => ({
+        number: n,
+        labels: response.data.repository['result' + index].labels.edges.map(edge => edge.node.name)
+      }));
+    callback(results);
+  });
+}
+const getIssuesLabelsQuery = (repoOwner: string, repoName: string, numbers: number[]) => {
+  const resultList = numbers
+    .map((n, index) => {
+      return `
+            result${index}: issue(number: ${n}) {
+              labels(first: 100) {
+                edges {
+                  node {
+                    name
+                  }
+                }
+              }
+            }`;
+    })
+    .join(',');
+
+  return `
+    query {
+      repository(owner: "${repoOwner}", name: "${repoName}") {
+        ${resultList}
+      }
+    }`;
+}
+
 // mutations
 
 export const commentGitHubIssue = (headers: any, issueId: string, comment: string) => {
@@ -221,7 +257,7 @@ const commentGitHubIssueMutation = (issueId: string, comment: string): string =>
       }`;
 }
 
-// this mutation is not currently available - using the REST API 
+// these mutations are not currently available - using the REST API instead
 export const closeGitHubIssue = (headers: any, owner: string, repo: string, issueNumber: number, issueId: string) => {
   const useGraphql = false;
 
@@ -244,4 +280,10 @@ const closeGitHubIssueMutation = (issueId: string): string => {
           }
         }
       }`;
+}
+
+export const setLabelsForIssue = (headers: any, owner: string, repo: string, issueNumber: number, labels: string[]) => {
+  performGitHubRestRequest(headers, `/repos/${owner}/${repo}/issues/${issueNumber}`, 'PATCH', {
+    labels
+  });
 }

@@ -46,19 +46,12 @@ var getLinkedItemsNumbersInPullRequest = function (botUsername, pullRequest) {
     }).length > 0;
     if (!hasAlreadyGotTheMessage) {
         var linkedItemsNumbersInComments = pullRequest.comments.edges.map(function (edge) { return edge.node; })
-            .map(function (c) { return searchLinkedItemsNumbersInComment(c.body); })
+            .map(function (c) { return functions_1.searchLinkedItemsNumbersInComment(c.body); })
             .reduce(function (a, b) { return a.concat(b); }, []);
-        var linkedItemsNubmersInBodyMessage = searchLinkedItemsNumbersInComment(pullRequest.body);
+        var linkedItemsNubmersInBodyMessage = functions_1.searchLinkedItemsNumbersInComment(pullRequest.body);
         var linkedItemsNumbers = linkedItemsNumbersInComments.concat(linkedItemsNubmersInBodyMessage);
         var distinctLinkedItemsNumbers = utils_1.distinct(linkedItemsNumbers);
         return distinctLinkedItemsNumbers;
-    }
-    return [];
-};
-var searchLinkedItemsNumbersInComment = function (message) {
-    var matches = message.match(/[#][0-9]+/g);
-    if (matches) {
-        return matches.map(function (m) { return parseInt(m.trim().substr(1)); });
     }
     return [];
 };
