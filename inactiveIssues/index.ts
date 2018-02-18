@@ -33,11 +33,11 @@ module.exports = (context) => {
                         'mute-bot'
                     ];
 
-                    // only check issues in the current milestone or not in a milestone
+                    // only check issues in the current milestone or not in a milestone (or a previous milestone)
                     // only check issues without exlusive labels
                     const issuesToCheck = issues
                         .filter(issue => {
-                            return (!issue.milestone || issue.milestone.number <= currentMilestone.number);
+                            return (!issue.milestone || issue.milestone.number == currentMilestone.number || issue.milestone.state === 'CLOSED');
                         })
                         .filter(issue => {
                             return !containsExclusiveLabels(issue, exclusiveLabels);
@@ -47,7 +47,7 @@ module.exports = (context) => {
                         .filter(issue => issue.milestone && issue.milestone.number === currentMilestone.number);
 
                     const issuesNotInMilestone = issuesToCheck
-                        .filter(issue => !issue.milestone || issue.milestone.number < currentMilestone.number);
+                        .filter(issue => !issue.milestone || issue.milestone.state === 'CLOSED');
 
                     const numberOfDaysWithoutActivity = parseInt(process.env.NUMBER_OF_DAYS_WITHOUT_ACTIVITY || '7');
 
