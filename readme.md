@@ -17,6 +17,12 @@ The first time (X days after the last message), an alert/message is sent.
 The second time, another alert/message is sent.
 And the third time, the issue is closed
 
+### inactivePRs
+
+This function detects inactive Pull Requests.
+
+Send an alert every two weeks to the creator of the PR.
+
 ### unclosedIssuesInMergedPr
 
 This function listens a GitHub webhook event when a PR is merged.
