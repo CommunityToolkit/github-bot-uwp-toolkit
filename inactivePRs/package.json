@@ -1,0 +1,5 @@
+{
+    "name": "inactive-prs",
+    "version": "0.0.1",
+    "description": "Send alerts on GitHub Pull Requests if they are inactive"
+}

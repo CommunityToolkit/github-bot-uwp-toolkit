@@ -25,7 +25,7 @@ module.exports = function (context) {
                 return (!issue.milestone || issue.milestone.number <= currentMilestone.number);
             })
                 .filter(function (issue) {
-                return !isIssueContainsExclusiveLabels(issue, exclusiveLabels);
+                return !functions_1.containsExclusiveLabels(issue, exclusiveLabels);
             });
             var issuesInTheCurrentMilestone = issuesToCheck
                 .filter(function (issue) { return issue.milestone && issue.milestone.number === currentMilestone.number; });
@@ -71,13 +71,6 @@ var detectIssueWithoutActivity = function (issue, numberOfDaysWithoutActivity) {
         }
     }
     return false;
-};
-var isIssueContainsExclusiveLabels = function (issue, exclusiveLabels) {
-    return issue.labels.edges
-        .map(function (edge) { return edge.node; })
-        .some(function (label) {
-        return exclusiveLabels.some(function (l) { return l === label.name; });
-    });
 };
 var makeDecisionsForIssuesInCurrentMilestone = function (githubApiHeaders, issues) {
     var decisions = issues.map(function (issue) {

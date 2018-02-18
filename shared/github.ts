@@ -1,5 +1,5 @@
 import { performHttpRequest } from './http';
-import { IssueNode, PullRequestNode, IssueOrPullRequestLinkNode, Milestone } from './models';
+import { IssueNode, PullRequestNode, IssueOrPullRequestLinkNode, Milestone, PullRequest } from './models';
 
 // private functions
 
@@ -177,7 +177,7 @@ const getIssueOrPullRequestLinksQuery = (repoOwner: string, repoName: string, nu
       }`;
 }
 
-export const getAllMilestones = (headers: any, repoOwner: string, repoName: string,  callback: (milestones: Milestone[]) => any) => {
+export const getAllMilestones = (headers: any, repoOwner: string, repoName: string, callback: (milestones: Milestone[]) => any) => {
   performGitHubGraphqlRequest(headers, {
     query: getAllMilestonesQuery(repoOwner, repoName)
   }, (response) => {
@@ -202,17 +202,79 @@ const getAllMilestonesQuery = (repoOwner: string, repoName: string) => {
     }`;
 }
 
+export const getAllOpenPullRequests = (headers: any, repoOwner: string, repoName: string, callback: (pullRequests: PullRequest[]) => any) => {
+  performGitHubGraphqlRequest(headers, {
+    query: getAllOpenPullRequestsQuery(repoOwner, repoName)
+  }, (response) => {
+    callback(response.data.repository.pullRequests.edges.map(edge => edge.node));
+  });
+}
+const getAllOpenPullRequestsQuery = (repoOwner: string, repoName: string) => {
+  return `
+      query { 
+        repository(owner: "${repoOwner}", name: "${repoName}") { 
+          pullRequests(states: [OPEN], first: 100) {
+            edges {
+              node {
+                id,
+                number,
+                author {
+                  login
+                },
+                createdAt,
+                comments {
+                  totalCount
+                },
+                lastComment: comments(last: 1) {
+                  edges {
+                    node {
+                      updatedAt
+                    }
+                  }
+                },
+                lastTwoComments: comments(last: 2) {
+                  edges {
+                    node {
+                      author {
+                        login
+                      },
+                      body
+                    }
+                  }
+                },
+                labels(first: 10) {
+                  edges {
+                    node {
+                      name
+                    }
+                  }
+                },
+                milestone {
+                  number
+                }
+              }
+            }
+          }
+        }
+      }`;
+}
+
 // mutations
 
 export const commentGitHubIssue = (headers: any, issueId: string, comment: string) => {
   performGitHubGraphqlRequest(headers, {
-    query: commentGitHubIssueMutation(issueId, comment)
+    query: addGitHubCommentMutation(issueId, comment)
   });
 }
-const commentGitHubIssueMutation = (issueId: string, comment: string): string => {
+export const commentGitHubPullRequest = (headers: any, pullRequestId: string, comment: string) => {
+  performGitHubGraphqlRequest(headers, {
+    query: addGitHubCommentMutation(pullRequestId, comment)
+  });
+}
+const addGitHubCommentMutation = (subjectId: string, comment: string): string => {
   return `
       mutation {
-        addComment(input: { subjectId: "${issueId}", body: "${comment}" }) {
+        addComment(input: { subjectId: "${subjectId}", body: "${comment}" }) {
           subject {
             id
           }

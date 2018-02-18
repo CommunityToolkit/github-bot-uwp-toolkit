@@ -41,9 +41,7 @@ export type IssueNode = {
             }
         }[];
     };
-    milestone: {
-        number: number;
-    };
+    milestone: MilestoneWithNumberAndState | undefined;
 }
 
 export type PullRequestNode = {
@@ -75,4 +73,46 @@ export type Milestone = {
     state: 'CLOSED' | 'OPEN';
     dueOn: string;
     number: number;
+}
+
+export type MilestoneWithNumberAndState = {
+    number: number;
+    state: 'OPEN' | 'CLOSED';
+}
+
+export type PullRequest = {
+    id: string;
+    number: number;
+    author: {
+        login: string
+    };
+    createdAt: string;
+    comments: {
+        totalCount: number
+    };
+    lastComment: {
+        edges: {
+            node: {
+                updatedAt: string
+            }
+        }[];
+    };
+    lastTwoComments: {
+        edges: {
+            node: {
+                author: {
+                    login: string
+                },
+                body: string
+            }
+        }[];
+    };
+    labels: {
+        edges: {
+            node: {
+                name: string
+            }
+        }[];
+    };
+    milestone: MilestoneWithNumberAndState | undefined;
 }
