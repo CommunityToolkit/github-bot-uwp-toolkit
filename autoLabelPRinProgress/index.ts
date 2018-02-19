@@ -43,15 +43,23 @@ module.exports = (context, req) => {
                     if (process.env.GITHUB_BOT_UWP_TOOLKIT_ACTIVATE_MUTATION) {
                         getIssuesLabels(githubApiHeaders, repoOwner, repoName, issuesNumber, (issuesWithLabels) => {
                             if (req.action === 'closed') {
+                                // filter issues which DOES already contain the label
+                                const issuesWithLabelsWithExpectedLabel =
+                                    issuesWithLabels.filter(iwl => iwl.labels.some(label => label === labelPRinProgress));
+
                                 // remove label 'PR in progress'
-                                issuesWithLabels.map(issueWithLabels => {
+                                issuesWithLabelsWithExpectedLabel.map(issueWithLabels => {
                                     const labels = distinct(issueWithLabels.labels.filter(label => label !== labelPRinProgress));
                                     setLabelsForIssue(githubApiHeaders, repoOwner, repoName, issueWithLabels.number, labels);
                                 });
                             }
                             if (req.action === 'opened' || req.action === 'reopened') {
+                                // filter issues which does NOT already contain the label
+                                const issuesWithLabelsWithoutExpectedLabel =
+                                    issuesWithLabels.filter(iwl => iwl.labels.every(label => label !== labelPRinProgress));
+
                                 // add label 'PR in progress'
-                                issuesWithLabels.map(issueWithLabels => {
+                                issuesWithLabelsWithoutExpectedLabel.map(issueWithLabels => {
                                     const labels = distinct(issueWithLabels.labels.concat([labelPRinProgress]));
                                     setLabelsForIssue(githubApiHeaders, repoOwner, repoName, issueWithLabels.number, labels);
                                 });

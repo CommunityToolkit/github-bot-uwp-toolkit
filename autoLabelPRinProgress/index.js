@@ -31,13 +31,15 @@ module.exports = function (context, req) {
                 if (process.env.GITHUB_BOT_UWP_TOOLKIT_ACTIVATE_MUTATION) {
                     github_1.getIssuesLabels(githubApiHeaders, repoOwner, repoName, issuesNumber, function (issuesWithLabels) {
                         if (req.action === 'closed') {
-                            issuesWithLabels.map(function (issueWithLabels) {
+                            var issuesWithLabelsWithExpectedLabel = issuesWithLabels.filter(function (iwl) { return iwl.labels.some(function (label) { return label === labelPRinProgress; }); });
+                            issuesWithLabelsWithExpectedLabel.map(function (issueWithLabels) {
                                 var labels = utils_1.distinct(issueWithLabels.labels.filter(function (label) { return label !== labelPRinProgress; }));
                                 github_1.setLabelsForIssue(githubApiHeaders, repoOwner, repoName, issueWithLabels.number, labels);
                             });
                         }
                         if (req.action === 'opened' || req.action === 'reopened') {
-                            issuesWithLabels.map(function (issueWithLabels) {
+                            var issuesWithLabelsWithoutExpectedLabel = issuesWithLabels.filter(function (iwl) { return iwl.labels.every(function (label) { return label !== labelPRinProgress; }); });
+                            issuesWithLabelsWithoutExpectedLabel.map(function (issueWithLabels) {
                                 var labels = utils_1.distinct(issueWithLabels.labels.concat([labelPRinProgress]));
                                 github_1.setLabelsForIssue(githubApiHeaders, repoOwner, repoName, issueWithLabels.number, labels);
                             });
