@@ -16,4 +16,11 @@ exports.completeFunctionBySendingMail = function (context, personalizations, mai
         content: content
     });
 };
+exports.searchLinkedItemsNumbersInComment = function (message) {
+    var matches = message.match(/[#][0-9]+/g);
+    if (matches) {
+        return matches.map(function (m) { return parseInt(m.trim().substr(1)); });
+    }
+    return [];
+};
 //# sourceMappingURL=functions.js.map

@@ -77,3 +77,8 @@ export type Milestone = {
     dueOn: string;
     number: number;
 }
+
+export type IssueWithLabels = {
+    number: number;
+    labels: string[];
+}
