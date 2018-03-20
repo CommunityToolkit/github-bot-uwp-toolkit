@@ -1,6 +1,6 @@
 // Array utils
 
-export const distinct = (array: any[]): any[] => {
+export const distinct = <T>(array: T[]): T[] => {
     return array.filter((x, i, a) => {
         return a.indexOf(x) === i;
     });

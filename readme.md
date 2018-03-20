@@ -32,6 +32,11 @@ Then, using the `pull_request` it will detect the linked issues that are not clo
 
 This function detects issues with `pending-uservoice-creation` label.
 
+### autoLabelPRinProgress
+
+This function listens a GitHub webhook event when a PR is created, closed, reopened or merged.
+Then, it will detect the linked issues to this PR and update the `labels` of each of these issues by adding/removing the `PR in progress` label.
+
 ## How to use?
 
 1. First, build the project using `tsc` command line.

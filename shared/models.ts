@@ -116,3 +116,8 @@ export type PullRequest = {
     };
     milestone: MilestoneWithNumberAndState | undefined;
 }
+
+export type IssueWithLabels = {
+    number: number;
+    labels: string[];
+}

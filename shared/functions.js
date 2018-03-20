@@ -23,4 +23,11 @@ exports.containsExclusiveLabels = function (rootNode, exclusiveLabels) {
         return exclusiveLabels.some(function (l) { return l === label.name; });
     });
 };
+exports.searchLinkedItemsNumbersInComment = function (message) {
+    var matches = message.match(/[#][0-9]+/g);
+    if (matches) {
+        return matches.map(function (m) { return parseInt(m.trim().substr(1)); });
+    }
+    return [];
+};
 //# sourceMappingURL=functions.js.map

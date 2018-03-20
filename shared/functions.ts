@@ -24,3 +24,12 @@ export const containsExclusiveLabels = (rootNode: IssueNode | PullRequest, exclu
             return exclusiveLabels.some(l => l === label.name);
         });
 }
+
+export const searchLinkedItemsNumbersInComment = (message: string): number[] => {
+    const matches = message.match(/[#][0-9]+/g);
+
+    if (matches) {
+        return matches.map(m => parseInt(m.trim().substr(1)));
+    }
+    return [];
+}
