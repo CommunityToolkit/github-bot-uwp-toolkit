@@ -1,3 +1,5 @@
+import { PullRequest, IssueNode } from "./models";
+
 export const completeFunction = (context: any, request: any, response: any) => {
     if (request) {
         context.done(null, response);
@@ -13,6 +15,14 @@ export const completeFunctionBySendingMail = (context: any, personalizations: an
         subject: subject,
         content: content
     });
+}
+
+export const containsExclusiveLabels = (rootNode: IssueNode | PullRequest, exclusiveLabels: string[]): boolean => {
+    return rootNode.labels.edges
+        .map(edge => edge.node)
+        .some(label => {
+            return exclusiveLabels.some(l => l === label.name);
+        });
 }
 
 export const searchLinkedItemsNumbersInComment = (message: string): number[] => {

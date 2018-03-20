@@ -1,5 +1,5 @@
 import { addDays, distinct } from '../shared/utils';
-import { completeFunction } from '../shared/functions';
+import { completeFunction, containsExclusiveLabels } from '../shared/functions';
 import { IssueNode } from '../shared/models';
 import { getAllMilestones, getAllGitHubIssuesRecursively, commentGitHubIssue, closeGitHubIssue } from '../shared/github';
 
@@ -40,7 +40,7 @@ module.exports = (context) => {
                             return (!issue.milestone || issue.milestone.number == currentMilestone.number || issue.milestone.state === 'CLOSED');
                         })
                         .filter(issue => {
-                            return !isIssueContainsExclusiveLabels(issue, exclusiveLabels);
+                            return !containsExclusiveLabels(issue, exclusiveLabels);
                         });
 
                     const issuesInTheCurrentMilestone = issuesToCheck
@@ -113,14 +113,6 @@ const detectIssueWithoutActivity = (issue: IssueNode, numberOfDaysWithoutActivit
     }
 
     return false;
-}
-
-const isIssueContainsExclusiveLabels = (issue: IssueNode, exclusiveLabels: string[]): boolean => {
-    return issue.labels.edges
-        .map(edge => edge.node)
-        .some(label => {
-            return exclusiveLabels.some(l => l === label.name);
-        });
 }
 
 const makeDecisionsForIssuesInCurrentMilestone = (githubApiHeaders: any, issues: IssueNode[]): IssueActivityDecision[] => {

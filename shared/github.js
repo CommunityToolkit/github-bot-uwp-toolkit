@@ -88,6 +88,16 @@ exports.getAllMilestones = function (headers, repoOwner, repoName, callback) {
 var getAllMilestonesQuery = function (repoOwner, repoName) {
     return "\n    query {\n      repository(owner: \"" + repoOwner + "\", name: \"" + repoName + "\") {\n        milestones(first: 100) {\n          edges {\n            node {\n              id,\n              state,\n              dueOn,\n              number\n            }\n          }\n        }\n      }\n    }";
 };
+exports.getAllOpenPullRequests = function (headers, repoOwner, repoName, callback) {
+    performGitHubGraphqlRequest(headers, {
+        query: getAllOpenPullRequestsQuery(repoOwner, repoName)
+    }, function (response) {
+        callback(response.data.repository.pullRequests.edges.map(function (edge) { return edge.node; }));
+    });
+};
+var getAllOpenPullRequestsQuery = function (repoOwner, repoName) {
+    return "\n      query { \n        repository(owner: \"" + repoOwner + "\", name: \"" + repoName + "\") { \n          pullRequests(states: [OPEN], first: 100) {\n            edges {\n              node {\n                id,\n                number,\n                author {\n                  login\n                },\n                createdAt,\n                comments {\n                  totalCount\n                },\n                lastComment: comments(last: 1) {\n                  edges {\n                    node {\n                      updatedAt\n                    }\n                  }\n                },\n                lastTwoComments: comments(last: 2) {\n                  edges {\n                    node {\n                      author {\n                        login\n                      },\n                      body\n                    }\n                  }\n                },\n                labels(first: 10) {\n                  edges {\n                    node {\n                      name\n                    }\n                  }\n                },\n                milestone {\n                  number\n                }\n              }\n            }\n          }\n        }\n      }";
+};
 exports.getIssuesLabels = function (headers, repoOwner, repoName, numbers, callback) {
     performGitHubGraphqlRequest(headers, {
         query: getIssuesLabelsQuery(repoOwner, repoName, numbers)
@@ -110,11 +120,16 @@ var getIssuesLabelsQuery = function (repoOwner, repoName, numbers) {
 };
 exports.commentGitHubIssue = function (headers, issueId, comment) {
     performGitHubGraphqlRequest(headers, {
-        query: commentGitHubIssueMutation(issueId, comment)
+        query: addGitHubCommentMutation(issueId, comment)
     });
 };
-var commentGitHubIssueMutation = function (issueId, comment) {
-    return "\n      mutation {\n        addComment(input: { subjectId: \"" + issueId + "\", body: \"" + comment + "\" }) {\n          subject {\n            id\n          }\n        }\n      }";
+exports.commentGitHubPullRequest = function (headers, pullRequestId, comment) {
+    performGitHubGraphqlRequest(headers, {
+        query: addGitHubCommentMutation(pullRequestId, comment)
+    });
+};
+var addGitHubCommentMutation = function (subjectId, comment) {
+    return "\n      mutation {\n        addComment(input: { subjectId: \"" + subjectId + "\", body: \"" + comment + "\" }) {\n          subject {\n            id\n          }\n        }\n      }";
 };
 exports.closeGitHubIssue = function (headers, owner, repo, issueNumber, issueId) {
     var useGraphql = false;

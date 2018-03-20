@@ -16,6 +16,13 @@ exports.completeFunctionBySendingMail = function (context, personalizations, mai
         content: content
     });
 };
+exports.containsExclusiveLabels = function (rootNode, exclusiveLabels) {
+    return rootNode.labels.edges
+        .map(function (edge) { return edge.node; })
+        .some(function (label) {
+        return exclusiveLabels.some(function (l) { return l === label.name; });
+    });
+};
 exports.searchLinkedItemsNumbersInComment = function (message) {
     var matches = message.match(/[#][0-9]+/g);
     if (matches) {
