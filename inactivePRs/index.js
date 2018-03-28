@@ -34,10 +34,16 @@ module.exports = function (context) {
         });
     });
 };
-var detectPullRequestWithoutActivity = function (issue, numberOfDaysWithoutActivity) {
-    var lastComment = issue.lastComment.edges[0];
+var detectPullRequestWithoutActivity = function (pullRequest, numberOfDaysWithoutActivity) {
+    var lastComment = pullRequest.lastComment.edges[0];
+    var reviews = pullRequest.reviews.edges;
+    var dateEdges = [lastComment].concat(reviews);
+    var maxDateString = dateEdges
+        .filter(function (edge) { return edge && edge.node && edge.node.updatedAt; })
+        .map(function (edge) { return edge.node.updatedAt; })
+        .sort(function (a, b) { return a < b ? 1 : -1; })[0];
     var today = new Date();
-    if (lastComment && new Date(lastComment.node.updatedAt) < utils_1.addDays(today, -numberOfDaysWithoutActivity)) {
+    if (maxDateString && new Date(maxDateString) < utils_1.addDays(today, -numberOfDaysWithoutActivity)) {
         return true;
     }
     return false;

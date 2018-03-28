@@ -107,6 +107,13 @@ export type PullRequest = {
             }
         }[];
     };
+    reviews: {
+        edges: {
+            node: {
+                updatedAt: string
+            }
+        }[];
+    };
     labels: {
         edges: {
             node: {

@@ -243,6 +243,13 @@ const getAllOpenPullRequestsQuery = (repoOwner: string, repoName: string) => {
                     }
                   }
                 },
+                reviews(last: 10) {
+                  edges {
+                    node {
+                      updatedAt
+                    }
+                  }
+                },
                 labels(first: 10) {
                   edges {
                     node {
