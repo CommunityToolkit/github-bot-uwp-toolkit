@@ -60,12 +60,21 @@ type PullRequestActivityDecision = {
     decision: 'alert';
 }
 
-const detectPullRequestWithoutActivity = (issue: PullRequest, numberOfDaysWithoutActivity: number): boolean => {
-    // check if last message was sent x days ago
-    const lastComment = issue.lastComment.edges[0];
+const detectPullRequestWithoutActivity = (pullRequest: PullRequest, numberOfDaysWithoutActivity: number): boolean => {
+    // select last edited date (on last message sent or review comments)
+    const lastComment = pullRequest.lastComment.edges[0];
+    const reviews = pullRequest.reviews.edges;
+
+    const dateEdges = [lastComment].concat(reviews);
+    const maxDateString = dateEdges
+        .filter(edge => edge && edge.node && edge.node.updatedAt)
+        .map(edge => edge.node.updatedAt)
+        .sort((a, b) => a < b ? 1 : -1)[0];
+
     const today = new Date();
 
-    if (lastComment && new Date(lastComment.node.updatedAt) < addDays(today, -numberOfDaysWithoutActivity)) {
+    // check if last updated message was sent x days ago
+    if (maxDateString && new Date(maxDateString) < addDays(today, -numberOfDaysWithoutActivity)) {
         return true;
     }
 
