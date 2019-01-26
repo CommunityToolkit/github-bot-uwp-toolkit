@@ -3,16 +3,17 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var utils_1 = require("../shared/utils");
 var functions_1 = require("../shared/functions");
 var github_1 = require("../shared/github");
+var constants_1 = require("../shared/constants");
 module.exports = function (context) {
     var githubApiHeaders = {
         'User-Agent': 'github-bot-uwp-toolkit',
-        'Authorization': 'token ' + process.env.GITHUB_BOT_UWP_TOOLKIT_ACCESS_TOKEN
+        'Authorization': 'token ' + constants_1.ACCESS_TOKEN
     };
-    github_1.getAllMilestones(githubApiHeaders, process.env.GITHUB_BOT_UWP_TOOLKIT_REPO_OWNER, process.env.GITHUB_BOT_UWP_TOOLKIT_REPO_NAME, function (milestones) {
+    github_1.getAllMilestones(githubApiHeaders, constants_1.REPO_OWNER, constants_1.REPO_NAME, function (milestones) {
         var currentMilestone = milestones
             .filter(function (m) { return m.state === 'OPEN' && !!m.dueOn; })
             .sort(function (m1, m2) { return new Date(m1.dueOn).getTime() - new Date(m2.dueOn).getTime(); })[0];
-        github_1.getAllGitHubIssuesRecursively(githubApiHeaders, process.env.GITHUB_BOT_UWP_TOOLKIT_REPO_OWNER, process.env.GITHUB_BOT_UWP_TOOLKIT_REPO_NAME, null, function (issues) {
+        github_1.getAllGitHubIssuesRecursively(githubApiHeaders, constants_1.REPO_OWNER, constants_1.REPO_NAME, null, function (issues) {
             var exclusiveLabels = [
                 'PR in progress',
                 'work in progress',
@@ -31,12 +32,11 @@ module.exports = function (context) {
                 .filter(function (issue) { return issue.milestone && issue.milestone.number === currentMilestone.number; });
             var issuesNotInMilestone = issuesToCheck
                 .filter(function (issue) { return !issue.milestone || issue.milestone.state === 'CLOSED'; });
-            var numberOfDaysWithoutActivity = parseInt(process.env.NUMBER_OF_DAYS_WITHOUT_ACTIVITY || '7');
             var inactiveIssuesInTheCurrentMilestone = issuesInTheCurrentMilestone.filter(function (issue) {
-                return detectIssueWithoutActivity(issue, numberOfDaysWithoutActivity * 2);
+                return detectIssueWithoutActivity(issue, constants_1.NUMBER_OF_DAYS_WITHOUT_ACTIVITY * 2);
             });
             var inactiveIssuesNotInMilestone = issuesNotInMilestone.filter(function (issue) {
-                return detectIssueWithoutActivity(issue, numberOfDaysWithoutActivity);
+                return detectIssueWithoutActivity(issue, constants_1.NUMBER_OF_DAYS_WITHOUT_ACTIVITY);
             });
             var decisions1 = makeDecisionsForIssuesInCurrentMilestone(githubApiHeaders, inactiveIssuesInTheCurrentMilestone);
             var decisions2 = makeDecisionsForIssuesNotInMilestone(githubApiHeaders, inactiveIssuesNotInMilestone);
@@ -81,7 +81,7 @@ var makeDecisionsForIssuesInCurrentMilestone = function (githubApiHeaders, issue
             inCurrentMilestone: true
         };
     });
-    if (process.env.GITHUB_BOT_UWP_TOOLKIT_ACTIVATE_MUTATION) {
+    if (constants_1.ACTIVATE_MUTATION) {
         decisions.forEach(function (d) {
             github_1.commentGitHubIssue(githubApiHeaders, d.issue.id, "This issue seems inactive. Do you need help to complete this issue?");
         });
@@ -90,7 +90,7 @@ var makeDecisionsForIssuesInCurrentMilestone = function (githubApiHeaders, issue
 };
 var makeDecisionsForIssuesNotInMilestone = function (githubApiHeaders, issues) {
     var decisions = issues.map(function (issue) {
-        var numberOfAlertsAlreadySent = detectNumberOfAlertsAlreadySent(process.env.GITHUB_BOT_UWP_TOOLKIT_USERNAME, issue);
+        var numberOfAlertsAlreadySent = detectNumberOfAlertsAlreadySent(constants_1.BOT_USERNAME, issue);
         if (numberOfAlertsAlreadySent === 2) {
             return {
                 issue: issue,
@@ -108,15 +108,14 @@ var makeDecisionsForIssuesNotInMilestone = function (githubApiHeaders, issues) {
             };
         }
     });
-    if (process.env.GITHUB_BOT_UWP_TOOLKIT_ACTIVATE_MUTATION) {
+    if (constants_1.ACTIVATE_MUTATION) {
         decisions.filter(function (d) { return d.decision === 'alert'; }).forEach(function (d) {
-            var numberOfDaysWithoutActivity = parseInt(process.env.NUMBER_OF_DAYS_WITHOUT_ACTIVITY || '7');
-            var daysBeforeClosingIssue = numberOfDaysWithoutActivity * (2 - d.numberOfAlertsAlreadySent);
+            var daysBeforeClosingIssue = constants_1.NUMBER_OF_DAYS_WITHOUT_ACTIVITY * (2 - d.numberOfAlertsAlreadySent);
             github_1.commentGitHubIssue(githubApiHeaders, d.issue.id, "This issue seems inactive. It will automatically be closed in " + daysBeforeClosingIssue + " days if there is no activity.");
         });
         decisions.filter(function (d) { return d.decision === 'close'; }).forEach(function (d) {
             github_1.commentGitHubIssue(githubApiHeaders, d.issue.id, 'Issue is inactive. It was automatically closed.');
-            github_1.closeGitHubIssue(githubApiHeaders, process.env.GITHUB_BOT_UWP_TOOLKIT_REPO_OWNER, process.env.GITHUB_BOT_UWP_TOOLKIT_REPO_NAME, d.issue.number, d.issue.id);
+            github_1.closeGitHubIssue(githubApiHeaders, constants_1.REPO_OWNER, constants_1.REPO_NAME, d.issue.number, d.issue.id);
         });
     }
     return decisions;

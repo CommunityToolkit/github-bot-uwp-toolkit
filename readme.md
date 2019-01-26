@@ -51,10 +51,10 @@ These environment variables should be set to launch the bot.
 
 | Variable | Description | Default value |
 |-|-|-|
-| GITHUB_BOT_UWP_TOOLKIT_USERNAME               | Username of the GitHub account of the bot |  |
+| GITHUB_BOT_UWP_TOOLKIT_USERNAME               | Username of the GitHub account of the bot | uwptoolkitbot |
 | GITHUB_BOT_UWP_TOOLKIT_ACCESS_TOKEN           | Personal Access Token used to retrieve data from the GitHub API |  |
-| GITHUB_BOT_UWP_TOOLKIT_REPO_OWNER             | Target Repository owner (should be "Microsoft") |  |
-| GITHUB_BOT_UWP_TOOLKIT_REPO_NAME              | Target Repository name (should be "UWP Community Toolkit") |  |
+| GITHUB_BOT_UWP_TOOLKIT_REPO_OWNER             | Target Repository owner | windows-toolkit |
+| GITHUB_BOT_UWP_TOOLKIT_REPO_NAME              | Target Repository name | WindowsCommunityToolkit |
 | GITHUB_BOT_UWP_TOOLKIT_ACTIVATE_MUTATION      | Activate GitHub mutation calls | false |
 | NUMBER_OF_DAYS_WITHOUT_ACTIVITY               | Number of days without activity to check on `inactiveIssues` function | 7 |
 | NUMBER_OF_DAYS_WITHOUT_RESPONSE               | Number of days without response to check on `noResponseFromCommunityOnIssues` function | 7 |

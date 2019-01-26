@@ -3,12 +3,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var utils_1 = require("../shared/utils");
 var functions_1 = require("../shared/functions");
 var github_1 = require("../shared/github");
+var constants_1 = require("../shared/constants");
 module.exports = function (context) {
     var githubApiHeaders = {
         'User-Agent': 'github-bot-uwp-toolkit',
-        'Authorization': 'token ' + process.env.GITHUB_BOT_UWP_TOOLKIT_ACCESS_TOKEN
+        'Authorization': 'token ' + constants_1.ACCESS_TOKEN
     };
-    github_1.getAllGitHubIssuesRecursively(githubApiHeaders, process.env.GITHUB_BOT_UWP_TOOLKIT_REPO_OWNER, process.env.GITHUB_BOT_UWP_TOOLKIT_REPO_NAME, null, function (issues) {
+    github_1.getAllGitHubIssuesRecursively(githubApiHeaders, constants_1.REPO_OWNER, constants_1.REPO_NAME, null, function (issues) {
         var exclusiveLabels = [
             'PR in progress',
             'work in progress',
@@ -24,7 +25,7 @@ module.exports = function (context) {
         var issuesWithoutResponse = issues.filter(function (issue) {
             return detectIfNoResponseFromCommunity(issue, exclusiveLabels);
         });
-        if (process.env.GITHUB_BOT_UWP_TOOLKIT_ACTIVATE_MUTATION) {
+        if (constants_1.ACTIVATE_MUTATION) {
             var pingContributorsMessagePart_1 = contributorsToAlert.map(function (c) { return '@' + c; }).join(' ');
             issuesWithoutResponse.forEach(function (issue) {
                 github_1.commentGitHubIssue(githubApiHeaders, issue.id, "No response from the community. ping " + pingContributorsMessagePart_1);
@@ -45,8 +46,7 @@ var detectIfNoResponseFromCommunity = function (issue, exclusiveLabels) {
         });
         if (!containsExclusiveLabels) {
             var today = new Date();
-            var numberOfDaysWithoutResponse = parseInt(process.env.NUMBER_OF_DAYS_WITHOUT_RESPONSE || '7');
-            if (new Date(issue.createdAt) < utils_1.addDays(today, -numberOfDaysWithoutResponse)) {
+            if (new Date(issue.createdAt) < utils_1.addDays(today, -constants_1.NUMBER_OF_DAYS_WITHOUT_RESPONSE)) {
                 return true;
             }
         }

@@ -2,17 +2,18 @@ import { getAllMilestones, getAllOpenPullRequests, commentGitHubPullRequest } fr
 import { containsExclusiveLabels, completeFunction } from '../shared/functions';
 import { PullRequest } from '../shared/models';
 import { addDays } from '../shared/utils';
+import { NUMBER_OF_DAYS_WITHOUT_ACTIVITY, ACCESS_TOKEN, REPO_OWNER, REPO_NAME, ACTIVATE_MUTATION } from '../shared/constants';
 
 module.exports = (context) => {
     const githubApiHeaders = {
         'User-Agent': 'github-bot-uwp-toolkit',
-        'Authorization': 'token ' + process.env.GITHUB_BOT_UWP_TOOLKIT_ACCESS_TOKEN
+        'Authorization': 'token ' + ACCESS_TOKEN
     };
 
     getAllMilestones(
         githubApiHeaders,
-        process.env.GITHUB_BOT_UWP_TOOLKIT_REPO_OWNER,
-        process.env.GITHUB_BOT_UWP_TOOLKIT_REPO_NAME,
+        REPO_OWNER,
+        REPO_NAME,
         (milestones) => {
             const currentMilestone = milestones
                 .filter(m => m.state === 'OPEN' && !!m.dueOn)
@@ -21,8 +22,8 @@ module.exports = (context) => {
 
             getAllOpenPullRequests(
                 githubApiHeaders,
-                process.env.GITHUB_BOT_UWP_TOOLKIT_REPO_OWNER,
-                process.env.GITHUB_BOT_UWP_TOOLKIT_REPO_NAME,
+                REPO_OWNER,
+                REPO_NAME,
                 (pullRequests) => {
                     const exclusiveLabels = [
                         'help wanted',
@@ -39,10 +40,8 @@ module.exports = (context) => {
                             return !containsExclusiveLabels(issue, exclusiveLabels);
                         });
 
-                    const numberOfDaysWithoutActivity = parseInt(process.env.NUMBER_OF_DAYS_WITHOUT_ACTIVITY || '7');
-
                     const inactivePullRequests = pullRequestsToCheck.filter(pr => {
-                        return detectPullRequestWithoutActivity(pr, numberOfDaysWithoutActivity * 2);
+                        return detectPullRequestWithoutActivity(pr, NUMBER_OF_DAYS_WITHOUT_ACTIVITY * 2);
                     });
 
                     const decisions = makeDecisions(githubApiHeaders, inactivePullRequests);
@@ -90,7 +89,7 @@ const makeDecisions = (githubApiHeaders: any, pullRequests: PullRequest[]): Pull
         };
     });
 
-    if (process.env.GITHUB_BOT_UWP_TOOLKIT_ACTIVATE_MUTATION) {
+    if (ACTIVATE_MUTATION) {
         decisions.forEach(d => {
             const assigneesLogins = d.pullRequest.assignees.edges.map(edge => edge.node.login);
             const loginOfUsersToAlert = assigneesLogins.concat([d.pullRequest.author.login]);

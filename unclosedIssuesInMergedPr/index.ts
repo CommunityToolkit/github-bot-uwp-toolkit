@@ -2,6 +2,7 @@ import { distinct } from '../shared/utils';
 import { completeFunction, searchLinkedItemsNumbersInComment } from '../shared/functions';
 import { PullRequestNode } from '../shared/models';
 import { getPullRequest, getIssueOrPullRequestLinks, commentGitHubIssue } from '../shared/github';
+import { ACCESS_TOKEN, REPO_OWNER, REPO_NAME, BOT_USERNAME, ACTIVATE_MUTATION } from '../shared/constants';
 
 module.exports = (context, req) => {
     if (req.action !== 'closed' || !req.pull_request.merged) {
@@ -12,25 +13,24 @@ module.exports = (context, req) => {
 
     const githubApiHeaders = {
         'User-Agent': 'github-bot-uwp-toolkit',
-        'Authorization': 'token ' + process.env.GITHUB_BOT_UWP_TOOLKIT_ACCESS_TOKEN
+        'Authorization': 'token ' + ACCESS_TOKEN
     };
 
-    const repoOwner = process.env.GITHUB_BOT_UWP_TOOLKIT_REPO_OWNER;
-    const repoName = process.env.GITHUB_BOT_UWP_TOOLKIT_REPO_NAME;
     const pullRequestNumber: number = req.number;
 
     getPullRequest(
         githubApiHeaders,
-        repoOwner,
-        repoName,
+        REPO_OWNER,
+        REPO_NAME,
         pullRequestNumber,
         (pullRequest) => {
             // get linked items (can be issue or PR)
             const linkedItemsNumbers = getLinkedItemsNumbersInPullRequest(
-                process.env.GITHUB_BOT_UWP_TOOLKIT_USERNAME,
-                pullRequest);
+                BOT_USERNAME,
+                pullRequest
+            );
 
-            getIssueOrPullRequestLinks(githubApiHeaders, repoOwner, repoName, linkedItemsNumbers, (results) => {
+            getIssueOrPullRequestLinks(githubApiHeaders, REPO_OWNER, REPO_NAME, linkedItemsNumbers, (results) => {
                 const unclosedIssuesNumber = results
                     .filter(r => r.__typename === 'Issue' && r.closed === false)
                     .map(r => r.__typename === 'Issue' ? r.number : null)
@@ -47,7 +47,7 @@ module.exports = (context, req) => {
                     .map(n => '#' + n)
                     .join(', ');
 
-                if (process.env.GITHUB_BOT_UWP_TOOLKIT_ACTIVATE_MUTATION) {
+                if (ACTIVATE_MUTATION) {
                     // send a message with links to unclosed issues
                     commentGitHubIssue(
                         githubApiHeaders,

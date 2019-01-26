@@ -2,17 +2,18 @@ import { addDays, distinct } from '../shared/utils';
 import { completeFunction, containsExclusiveLabels } from '../shared/functions';
 import { IssueNode } from '../shared/models';
 import { getAllMilestones, getAllGitHubIssuesRecursively, commentGitHubIssue, closeGitHubIssue } from '../shared/github';
+import { ACCESS_TOKEN, REPO_OWNER, REPO_NAME, NUMBER_OF_DAYS_WITHOUT_ACTIVITY, ACTIVATE_MUTATION, BOT_USERNAME } from '../shared/constants';
 
 module.exports = (context) => {
     const githubApiHeaders = {
         'User-Agent': 'github-bot-uwp-toolkit',
-        'Authorization': 'token ' + process.env.GITHUB_BOT_UWP_TOOLKIT_ACCESS_TOKEN
+        'Authorization': 'token ' + ACCESS_TOKEN
     };
 
     getAllMilestones(
         githubApiHeaders,
-        process.env.GITHUB_BOT_UWP_TOOLKIT_REPO_OWNER,
-        process.env.GITHUB_BOT_UWP_TOOLKIT_REPO_NAME,
+        REPO_OWNER,
+        REPO_NAME,
         (milestones) => {
             const currentMilestone = milestones
                 .filter(m => m.state === 'OPEN' && !!m.dueOn)
@@ -21,8 +22,8 @@ module.exports = (context) => {
 
             getAllGitHubIssuesRecursively(
                 githubApiHeaders,
-                process.env.GITHUB_BOT_UWP_TOOLKIT_REPO_OWNER,
-                process.env.GITHUB_BOT_UWP_TOOLKIT_REPO_NAME,
+                REPO_OWNER,
+                REPO_NAME,
                 null,
                 (issues) => {
                     const exclusiveLabels = [
@@ -49,14 +50,12 @@ module.exports = (context) => {
                     const issuesNotInMilestone = issuesToCheck
                         .filter(issue => !issue.milestone || issue.milestone.state === 'CLOSED');
 
-                    const numberOfDaysWithoutActivity = parseInt(process.env.NUMBER_OF_DAYS_WITHOUT_ACTIVITY || '7');
-
                     const inactiveIssuesInTheCurrentMilestone = issuesInTheCurrentMilestone.filter(issue => {
-                        return detectIssueWithoutActivity(issue, numberOfDaysWithoutActivity * 2);
+                        return detectIssueWithoutActivity(issue, NUMBER_OF_DAYS_WITHOUT_ACTIVITY * 2);
                     });
 
                     const inactiveIssuesNotInMilestone = issuesNotInMilestone.filter(issue => {
-                        return detectIssueWithoutActivity(issue, numberOfDaysWithoutActivity);
+                        return detectIssueWithoutActivity(issue, NUMBER_OF_DAYS_WITHOUT_ACTIVITY);
                     });
 
                     const decisions1 = makeDecisionsForIssuesInCurrentMilestone(githubApiHeaders, inactiveIssuesInTheCurrentMilestone);
@@ -125,7 +124,7 @@ const makeDecisionsForIssuesInCurrentMilestone = (githubApiHeaders: any, issues:
         };
     });
 
-    if (process.env.GITHUB_BOT_UWP_TOOLKIT_ACTIVATE_MUTATION) {
+    if (ACTIVATE_MUTATION) {
         decisions.forEach(d => {
             commentGitHubIssue(
                 githubApiHeaders,
@@ -141,7 +140,7 @@ const makeDecisionsForIssuesNotInMilestone = (githubApiHeaders: any, issues: Iss
     // take a decision about the issue (send a new alert or close it)
     const decisions = issues.map<IssueActivityDecision>(issue => {
         const numberOfAlertsAlreadySent = detectNumberOfAlertsAlreadySent(
-            process.env.GITHUB_BOT_UWP_TOOLKIT_USERNAME,
+            BOT_USERNAME,
             issue);
 
         if (numberOfAlertsAlreadySent === 2) {
@@ -161,12 +160,11 @@ const makeDecisionsForIssuesNotInMilestone = (githubApiHeaders: any, issues: Iss
         }
     });
 
-    if (process.env.GITHUB_BOT_UWP_TOOLKIT_ACTIVATE_MUTATION) {
+    if (ACTIVATE_MUTATION) {
         // send new alerts if it was that decision
         decisions.filter(d => d.decision === 'alert').forEach(d => {
             // send a message to the creator that issue will be close in X days
-            const numberOfDaysWithoutActivity = parseInt(process.env.NUMBER_OF_DAYS_WITHOUT_ACTIVITY || '7');
-            const daysBeforeClosingIssue = numberOfDaysWithoutActivity * (2 - d.numberOfAlertsAlreadySent);
+            const daysBeforeClosingIssue = NUMBER_OF_DAYS_WITHOUT_ACTIVITY * (2 - d.numberOfAlertsAlreadySent);
 
             commentGitHubIssue(
                 githubApiHeaders,
@@ -184,8 +182,8 @@ const makeDecisionsForIssuesNotInMilestone = (githubApiHeaders: any, issues: Iss
 
             closeGitHubIssue(
                 githubApiHeaders,
-                process.env.GITHUB_BOT_UWP_TOOLKIT_REPO_OWNER,
-                process.env.GITHUB_BOT_UWP_TOOLKIT_REPO_NAME,
+                REPO_OWNER,
+                REPO_NAME,
                 d.issue.number,
                 d.issue.id);
         });

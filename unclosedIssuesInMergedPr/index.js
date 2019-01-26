@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var utils_1 = require("../shared/utils");
 var functions_1 = require("../shared/functions");
 var github_1 = require("../shared/github");
+var constants_1 = require("../shared/constants");
 module.exports = function (context, req) {
     if (req.action !== 'closed' || !req.pull_request.merged) {
         context.log('Only watch merged PR.');
@@ -11,14 +12,12 @@ module.exports = function (context, req) {
     }
     var githubApiHeaders = {
         'User-Agent': 'github-bot-uwp-toolkit',
-        'Authorization': 'token ' + process.env.GITHUB_BOT_UWP_TOOLKIT_ACCESS_TOKEN
+        'Authorization': 'token ' + constants_1.ACCESS_TOKEN
     };
-    var repoOwner = process.env.GITHUB_BOT_UWP_TOOLKIT_REPO_OWNER;
-    var repoName = process.env.GITHUB_BOT_UWP_TOOLKIT_REPO_NAME;
     var pullRequestNumber = req.number;
-    github_1.getPullRequest(githubApiHeaders, repoOwner, repoName, pullRequestNumber, function (pullRequest) {
-        var linkedItemsNumbers = getLinkedItemsNumbersInPullRequest(process.env.GITHUB_BOT_UWP_TOOLKIT_USERNAME, pullRequest);
-        github_1.getIssueOrPullRequestLinks(githubApiHeaders, repoOwner, repoName, linkedItemsNumbers, function (results) {
+    github_1.getPullRequest(githubApiHeaders, constants_1.REPO_OWNER, constants_1.REPO_NAME, pullRequestNumber, function (pullRequest) {
+        var linkedItemsNumbers = getLinkedItemsNumbersInPullRequest(constants_1.BOT_USERNAME, pullRequest);
+        github_1.getIssueOrPullRequestLinks(githubApiHeaders, constants_1.REPO_OWNER, constants_1.REPO_NAME, linkedItemsNumbers, function (results) {
             var unclosedIssuesNumber = results
                 .filter(function (r) { return r.__typename === 'Issue' && r.closed === false; })
                 .map(function (r) { return r.__typename === 'Issue' ? r.number : null; })
@@ -32,7 +31,7 @@ module.exports = function (context, req) {
                 .sort(function (a, b) { return a - b; })
                 .map(function (n) { return '#' + n; })
                 .join(', ');
-            if (process.env.GITHUB_BOT_UWP_TOOLKIT_ACTIVATE_MUTATION) {
+            if (constants_1.ACTIVATE_MUTATION) {
                 github_1.commentGitHubIssue(githubApiHeaders, pullRequest.id, "This PR is linked to unclosed issues. Please check if one of these issues should be closed: " + linkedItemsMessagePart);
             }
             context.log(unclosedIssuesNumber);

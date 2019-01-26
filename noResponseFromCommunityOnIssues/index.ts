@@ -2,17 +2,18 @@ import { addDays, distinct } from '../shared/utils';
 import { completeFunction } from '../shared/functions';
 import { IssueNode } from '../shared/models';
 import { getAllGitHubIssuesRecursively, commentGitHubIssue } from '../shared/github';
+import { NUMBER_OF_DAYS_WITHOUT_RESPONSE, ACCESS_TOKEN, REPO_OWNER, REPO_NAME, ACTIVATE_MUTATION } from '../shared/constants';
 
 module.exports = (context) => {
     const githubApiHeaders = {
         'User-Agent': 'github-bot-uwp-toolkit',
-        'Authorization': 'token ' + process.env.GITHUB_BOT_UWP_TOOLKIT_ACCESS_TOKEN
+        'Authorization': 'token ' + ACCESS_TOKEN
     };
 
     getAllGitHubIssuesRecursively(
         githubApiHeaders,
-        process.env.GITHUB_BOT_UWP_TOOLKIT_REPO_OWNER,
-        process.env.GITHUB_BOT_UWP_TOOLKIT_REPO_NAME,
+        REPO_OWNER,
+        REPO_NAME,
         null,
         (issues) => {
             const exclusiveLabels = [
@@ -33,7 +34,7 @@ module.exports = (context) => {
                 return detectIfNoResponseFromCommunity(issue, exclusiveLabels);
             });
 
-            if (process.env.GITHUB_BOT_UWP_TOOLKIT_ACTIVATE_MUTATION) {
+            if (ACTIVATE_MUTATION) {
                 const pingContributorsMessagePart = contributorsToAlert.map(c => '@' + c).join(' ');
 
                 // send a message with a ping to the team
@@ -63,9 +64,8 @@ const detectIfNoResponseFromCommunity = (issue: IssueNode, exclusiveLabels: stri
         if (!containsExclusiveLabels) {
             // check if the issue was created x days ago
             const today = new Date();
-            const numberOfDaysWithoutResponse = parseInt(process.env.NUMBER_OF_DAYS_WITHOUT_RESPONSE || '7');
 
-            if (new Date(issue.createdAt) < addDays(today, -numberOfDaysWithoutResponse)) {
+            if (new Date(issue.createdAt) < addDays(today, -NUMBER_OF_DAYS_WITHOUT_RESPONSE)) {
                 return true;
             }
         }

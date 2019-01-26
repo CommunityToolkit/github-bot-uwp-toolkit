@@ -3,16 +3,17 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var github_1 = require("../shared/github");
 var functions_1 = require("../shared/functions");
 var utils_1 = require("../shared/utils");
+var constants_1 = require("../shared/constants");
 module.exports = function (context) {
     var githubApiHeaders = {
         'User-Agent': 'github-bot-uwp-toolkit',
-        'Authorization': 'token ' + process.env.GITHUB_BOT_UWP_TOOLKIT_ACCESS_TOKEN
+        'Authorization': 'token ' + constants_1.ACCESS_TOKEN
     };
-    github_1.getAllMilestones(githubApiHeaders, process.env.GITHUB_BOT_UWP_TOOLKIT_REPO_OWNER, process.env.GITHUB_BOT_UWP_TOOLKIT_REPO_NAME, function (milestones) {
+    github_1.getAllMilestones(githubApiHeaders, constants_1.REPO_OWNER, constants_1.REPO_NAME, function (milestones) {
         var currentMilestone = milestones
             .filter(function (m) { return m.state === 'OPEN' && !!m.dueOn; })
             .sort(function (m1, m2) { return new Date(m1.dueOn).getTime() - new Date(m2.dueOn).getTime(); })[0];
-        github_1.getAllOpenPullRequests(githubApiHeaders, process.env.GITHUB_BOT_UWP_TOOLKIT_REPO_OWNER, process.env.GITHUB_BOT_UWP_TOOLKIT_REPO_NAME, function (pullRequests) {
+        github_1.getAllOpenPullRequests(githubApiHeaders, constants_1.REPO_OWNER, constants_1.REPO_NAME, function (pullRequests) {
             var exclusiveLabels = [
                 'help wanted',
                 'mute-bot'
@@ -24,9 +25,8 @@ module.exports = function (context) {
                 .filter(function (issue) {
                 return !functions_1.containsExclusiveLabels(issue, exclusiveLabels);
             });
-            var numberOfDaysWithoutActivity = parseInt(process.env.NUMBER_OF_DAYS_WITHOUT_ACTIVITY || '7');
             var inactivePullRequests = pullRequestsToCheck.filter(function (pr) {
-                return detectPullRequestWithoutActivity(pr, numberOfDaysWithoutActivity * 2);
+                return detectPullRequestWithoutActivity(pr, constants_1.NUMBER_OF_DAYS_WITHOUT_ACTIVITY * 2);
             });
             var decisions = makeDecisions(githubApiHeaders, inactivePullRequests);
             context.log(decisions);
@@ -56,7 +56,7 @@ var makeDecisions = function (githubApiHeaders, pullRequests) {
             decision: 'alert'
         };
     });
-    if (process.env.GITHUB_BOT_UWP_TOOLKIT_ACTIVATE_MUTATION) {
+    if (constants_1.ACTIVATE_MUTATION) {
         decisions.forEach(function (d) {
             var assigneesLogins = d.pullRequest.assignees.edges.map(function (edge) { return edge.node.login; });
             var loginOfUsersToAlert = assigneesLogins.concat([d.pullRequest.author.login]);

@@ -1,6 +1,7 @@
 import { getPullRequest, getIssueOrPullRequestLinks, setLabelsForIssue, getIssuesLabels } from '../shared/github';
 import { searchLinkedItemsNumbersInComment, completeFunction } from '../shared/functions';
 import { distinct } from '../shared/utils';
+import { ACCESS_TOKEN, REPO_OWNER, REPO_NAME, ACTIVATE_MUTATION } from '../shared/constants';
 
 const firstBlockTitle = '## PR Type';
 const labelPRinProgress = 'PR in progress';
@@ -8,17 +9,15 @@ const labelPRinProgress = 'PR in progress';
 module.exports = (context, req) => {
     const githubApiHeaders = {
         'User-Agent': 'github-bot-uwp-toolkit',
-        'Authorization': 'token ' + process.env.GITHUB_BOT_UWP_TOOLKIT_ACCESS_TOKEN
+        'Authorization': 'token ' + ACCESS_TOKEN
     };
 
-    const repoOwner = process.env.GITHUB_BOT_UWP_TOOLKIT_REPO_OWNER;
-    const repoName = process.env.GITHUB_BOT_UWP_TOOLKIT_REPO_NAME;
     const pullRequestNumber: number = req.number;
 
     getPullRequest(
         githubApiHeaders,
-        repoOwner,
-        repoName,
+        REPO_OWNER,
+        REPO_NAME,
         pullRequestNumber,
         (pullRequest) => {
             // retrieve first block of creation block where user puts the linked issues
@@ -28,7 +27,7 @@ module.exports = (context, req) => {
             if (firstBlockOfCreationMessage) {
                 const linkedItemsNumbers = distinct(searchLinkedItemsNumbersInComment(firstBlockOfCreationMessage));
 
-                getIssueOrPullRequestLinks(githubApiHeaders, repoOwner, repoName, linkedItemsNumbers, (results) => {
+                getIssueOrPullRequestLinks(githubApiHeaders, REPO_OWNER, REPO_NAME, linkedItemsNumbers, (results) => {
                     const issuesNumber = results
                         .filter(r => r.__typename === 'Issue')
                         .map(r => r.__typename === 'Issue' ? r.number : null)
@@ -40,8 +39,8 @@ module.exports = (context, req) => {
                         return;
                     }
 
-                    if (process.env.GITHUB_BOT_UWP_TOOLKIT_ACTIVATE_MUTATION) {
-                        getIssuesLabels(githubApiHeaders, repoOwner, repoName, issuesNumber, (issuesWithLabels) => {
+                    if (ACTIVATE_MUTATION) {
+                        getIssuesLabels(githubApiHeaders, REPO_OWNER, REPO_NAME, issuesNumber, (issuesWithLabels) => {
                             if (req.action === 'closed') {
                                 // filter issues which DOES already contain the label
                                 const issuesWithLabelsWithExpectedLabel =
@@ -50,7 +49,7 @@ module.exports = (context, req) => {
                                 // remove label 'PR in progress'
                                 issuesWithLabelsWithExpectedLabel.map(issueWithLabels => {
                                     const labels = distinct(issueWithLabels.labels.filter(label => label !== labelPRinProgress));
-                                    setLabelsForIssue(githubApiHeaders, repoOwner, repoName, issueWithLabels.number, labels);
+                                    setLabelsForIssue(githubApiHeaders, REPO_OWNER, REPO_NAME, issueWithLabels.number, labels);
                                 });
                             }
                             if (req.action === 'opened' || req.action === 'reopened') {
@@ -61,7 +60,7 @@ module.exports = (context, req) => {
                                 // add label 'PR in progress'
                                 issuesWithLabelsWithoutExpectedLabel.map(issueWithLabels => {
                                     const labels = distinct(issueWithLabels.labels.concat([labelPRinProgress]));
-                                    setLabelsForIssue(githubApiHeaders, repoOwner, repoName, issueWithLabels.number, labels);
+                                    setLabelsForIssue(githubApiHeaders, REPO_OWNER, REPO_NAME, issueWithLabels.number, labels);
                                 });
                             }
                         })
