@@ -15,9 +15,9 @@ module.exports = function (context, req) {
         'Authorization': 'token ' + constants_1.ACCESS_TOKEN
     };
     var pullRequestNumber = req.number;
-    github_1.getPullRequest(githubApiHeaders, constants_1.REPO_OWNER, constants_1.REPO_NAME, pullRequestNumber, function (pullRequest) {
-        var linkedItemsNumbers = getLinkedItemsNumbersInPullRequest(constants_1.BOT_USERNAME, pullRequest);
-        github_1.getIssueOrPullRequestLinks(githubApiHeaders, constants_1.REPO_OWNER, constants_1.REPO_NAME, linkedItemsNumbers, function (results) {
+    github_1.getPullRequest(githubApiHeaders, constants_1.TARGET_REPO_OWNER, constants_1.TARGET_REPO_NAME, pullRequestNumber, function (pullRequest) {
+        var linkedItemsNumbers = getLinkedItemsNumbersInPullRequest(constants_1.BOT_LOGIN, pullRequest);
+        github_1.getIssueOrPullRequestLinks(githubApiHeaders, constants_1.TARGET_REPO_OWNER, constants_1.TARGET_REPO_NAME, linkedItemsNumbers, function (results) {
             var unclosedIssuesNumber = results
                 .filter(function (r) { return r.__typename === 'Issue' && r.closed === false; })
                 .map(function (r) { return r.__typename === 'Issue' ? r.number : null; })

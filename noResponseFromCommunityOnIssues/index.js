@@ -9,7 +9,7 @@ module.exports = function (context) {
         'User-Agent': 'github-bot-uwp-toolkit',
         'Authorization': 'token ' + constants_1.ACCESS_TOKEN
     };
-    github_1.getAllGitHubIssuesRecursively(githubApiHeaders, constants_1.REPO_OWNER, constants_1.REPO_NAME, null, function (issues) {
+    github_1.getAllGitHubIssuesRecursively(githubApiHeaders, constants_1.TARGET_REPO_OWNER, constants_1.TARGET_REPO_NAME, null, function (issues) {
         var exclusiveLabels = [
             'PR in progress',
             'work in progress',

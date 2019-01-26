@@ -9,11 +9,11 @@ module.exports = function (context) {
         'User-Agent': 'github-bot-uwp-toolkit',
         'Authorization': 'token ' + constants_1.ACCESS_TOKEN
     };
-    github_1.getAllMilestones(githubApiHeaders, constants_1.REPO_OWNER, constants_1.REPO_NAME, function (milestones) {
+    github_1.getAllMilestones(githubApiHeaders, constants_1.TARGET_REPO_OWNER, constants_1.TARGET_REPO_NAME, function (milestones) {
         var currentMilestone = milestones
             .filter(function (m) { return m.state === 'OPEN' && !!m.dueOn; })
             .sort(function (m1, m2) { return new Date(m1.dueOn).getTime() - new Date(m2.dueOn).getTime(); })[0];
-        github_1.getAllOpenPullRequests(githubApiHeaders, constants_1.REPO_OWNER, constants_1.REPO_NAME, function (pullRequests) {
+        github_1.getAllOpenPullRequests(githubApiHeaders, constants_1.TARGET_REPO_OWNER, constants_1.TARGET_REPO_NAME, function (pullRequests) {
             var exclusiveLabels = [
                 'help wanted',
                 'mute-bot'

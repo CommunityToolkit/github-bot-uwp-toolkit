@@ -9,11 +9,11 @@ module.exports = function (context) {
         'User-Agent': 'github-bot-uwp-toolkit',
         'Authorization': 'token ' + constants_1.ACCESS_TOKEN
     };
-    github_1.getAllMilestones(githubApiHeaders, constants_1.REPO_OWNER, constants_1.REPO_NAME, function (milestones) {
+    github_1.getAllMilestones(githubApiHeaders, constants_1.TARGET_REPO_OWNER, constants_1.TARGET_REPO_NAME, function (milestones) {
         var currentMilestone = milestones
             .filter(function (m) { return m.state === 'OPEN' && !!m.dueOn; })
             .sort(function (m1, m2) { return new Date(m1.dueOn).getTime() - new Date(m2.dueOn).getTime(); })[0];
-        github_1.getAllGitHubIssuesRecursively(githubApiHeaders, constants_1.REPO_OWNER, constants_1.REPO_NAME, null, function (issues) {
+        github_1.getAllGitHubIssuesRecursively(githubApiHeaders, constants_1.TARGET_REPO_OWNER, constants_1.TARGET_REPO_NAME, null, function (issues) {
             var exclusiveLabels = [
                 'PR in progress',
                 'work in progress',
@@ -90,7 +90,7 @@ var makeDecisionsForIssuesInCurrentMilestone = function (githubApiHeaders, issue
 };
 var makeDecisionsForIssuesNotInMilestone = function (githubApiHeaders, issues) {
     var decisions = issues.map(function (issue) {
-        var numberOfAlertsAlreadySent = detectNumberOfAlertsAlreadySent(constants_1.BOT_USERNAME, issue);
+        var numberOfAlertsAlreadySent = detectNumberOfAlertsAlreadySent(constants_1.BOT_LOGIN, issue);
         if (numberOfAlertsAlreadySent === 2) {
             return {
                 issue: issue,
@@ -115,7 +115,7 @@ var makeDecisionsForIssuesNotInMilestone = function (githubApiHeaders, issues) {
         });
         decisions.filter(function (d) { return d.decision === 'close'; }).forEach(function (d) {
             github_1.commentGitHubIssue(githubApiHeaders, d.issue.id, 'Issue is inactive. It was automatically closed.');
-            github_1.closeGitHubIssue(githubApiHeaders, constants_1.REPO_OWNER, constants_1.REPO_NAME, d.issue.number, d.issue.id);
+            github_1.closeGitHubIssue(githubApiHeaders, constants_1.TARGET_REPO_OWNER, constants_1.TARGET_REPO_NAME, d.issue.number, d.issue.id);
         });
     }
     return decisions;

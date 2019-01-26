@@ -2,7 +2,7 @@ import { addDays, distinct } from '../shared/utils';
 import { completeFunction, containsExclusiveLabels } from '../shared/functions';
 import { IssueNode } from '../shared/models';
 import { getAllMilestones, getAllGitHubIssuesRecursively, commentGitHubIssue, closeGitHubIssue } from '../shared/github';
-import { ACCESS_TOKEN, REPO_OWNER, REPO_NAME, NUMBER_OF_DAYS_WITHOUT_ACTIVITY, ACTIVATE_MUTATION, BOT_USERNAME } from '../shared/constants';
+import { ACCESS_TOKEN, TARGET_REPO_OWNER, TARGET_REPO_NAME, NUMBER_OF_DAYS_WITHOUT_ACTIVITY, ACTIVATE_MUTATION, BOT_LOGIN } from '../shared/constants';
 
 module.exports = (context) => {
     const githubApiHeaders = {
@@ -12,8 +12,8 @@ module.exports = (context) => {
 
     getAllMilestones(
         githubApiHeaders,
-        REPO_OWNER,
-        REPO_NAME,
+        TARGET_REPO_OWNER,
+        TARGET_REPO_NAME,
         (milestones) => {
             const currentMilestone = milestones
                 .filter(m => m.state === 'OPEN' && !!m.dueOn)
@@ -22,8 +22,8 @@ module.exports = (context) => {
 
             getAllGitHubIssuesRecursively(
                 githubApiHeaders,
-                REPO_OWNER,
-                REPO_NAME,
+                TARGET_REPO_OWNER,
+                TARGET_REPO_NAME,
                 null,
                 (issues) => {
                     const exclusiveLabels = [
@@ -140,8 +140,9 @@ const makeDecisionsForIssuesNotInMilestone = (githubApiHeaders: any, issues: Iss
     // take a decision about the issue (send a new alert or close it)
     const decisions = issues.map<IssueActivityDecision>(issue => {
         const numberOfAlertsAlreadySent = detectNumberOfAlertsAlreadySent(
-            BOT_USERNAME,
-            issue);
+            BOT_LOGIN,
+            issue
+        );
 
         if (numberOfAlertsAlreadySent === 2) {
             return {
@@ -182,8 +183,8 @@ const makeDecisionsForIssuesNotInMilestone = (githubApiHeaders: any, issues: Iss
 
             closeGitHubIssue(
                 githubApiHeaders,
-                REPO_OWNER,
-                REPO_NAME,
+                TARGET_REPO_OWNER,
+                TARGET_REPO_NAME,
                 d.issue.number,
                 d.issue.id);
         });

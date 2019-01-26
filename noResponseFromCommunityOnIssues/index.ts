@@ -2,7 +2,7 @@ import { addDays, distinct } from '../shared/utils';
 import { completeFunction } from '../shared/functions';
 import { IssueNode } from '../shared/models';
 import { getAllGitHubIssuesRecursively, commentGitHubIssue } from '../shared/github';
-import { NUMBER_OF_DAYS_WITHOUT_RESPONSE, ACCESS_TOKEN, REPO_OWNER, REPO_NAME, ACTIVATE_MUTATION } from '../shared/constants';
+import { NUMBER_OF_DAYS_WITHOUT_RESPONSE, ACCESS_TOKEN, TARGET_REPO_OWNER, TARGET_REPO_NAME, ACTIVATE_MUTATION } from '../shared/constants';
 
 module.exports = (context) => {
     const githubApiHeaders = {
@@ -12,8 +12,8 @@ module.exports = (context) => {
 
     getAllGitHubIssuesRecursively(
         githubApiHeaders,
-        REPO_OWNER,
-        REPO_NAME,
+        TARGET_REPO_OWNER,
+        TARGET_REPO_NAME,
         null,
         (issues) => {
             const exclusiveLabels = [

@@ -2,7 +2,7 @@ import { distinct } from '../shared/utils';
 import { completeFunction, searchLinkedItemsNumbersInComment } from '../shared/functions';
 import { PullRequestNode } from '../shared/models';
 import { getPullRequest, getIssueOrPullRequestLinks, commentGitHubIssue } from '../shared/github';
-import { ACCESS_TOKEN, REPO_OWNER, REPO_NAME, BOT_USERNAME, ACTIVATE_MUTATION } from '../shared/constants';
+import { ACCESS_TOKEN, TARGET_REPO_OWNER, TARGET_REPO_NAME, BOT_LOGIN, ACTIVATE_MUTATION } from '../shared/constants';
 
 module.exports = (context, req) => {
     if (req.action !== 'closed' || !req.pull_request.merged) {
@@ -20,17 +20,17 @@ module.exports = (context, req) => {
 
     getPullRequest(
         githubApiHeaders,
-        REPO_OWNER,
-        REPO_NAME,
+        TARGET_REPO_OWNER,
+        TARGET_REPO_NAME,
         pullRequestNumber,
         (pullRequest) => {
             // get linked items (can be issue or PR)
             const linkedItemsNumbers = getLinkedItemsNumbersInPullRequest(
-                BOT_USERNAME,
+                BOT_LOGIN,
                 pullRequest
             );
 
-            getIssueOrPullRequestLinks(githubApiHeaders, REPO_OWNER, REPO_NAME, linkedItemsNumbers, (results) => {
+            getIssueOrPullRequestLinks(githubApiHeaders, TARGET_REPO_OWNER, TARGET_REPO_NAME, linkedItemsNumbers, (results) => {
                 const unclosedIssuesNumber = results
                     .filter(r => r.__typename === 'Issue' && r.closed === false)
                     .map(r => r.__typename === 'Issue' ? r.number : null)

@@ -1,7 +1,7 @@
 import { getPullRequest, getIssueOrPullRequestLinks, setLabelsForIssue, getIssuesLabels } from '../shared/github';
 import { searchLinkedItemsNumbersInComment, completeFunction } from '../shared/functions';
 import { distinct } from '../shared/utils';
-import { ACCESS_TOKEN, REPO_OWNER, REPO_NAME, ACTIVATE_MUTATION } from '../shared/constants';
+import { ACCESS_TOKEN, TARGET_REPO_OWNER, TARGET_REPO_NAME, ACTIVATE_MUTATION } from '../shared/constants';
 
 const firstBlockTitle = '## PR Type';
 const labelPRinProgress = 'PR in progress';
@@ -16,8 +16,8 @@ module.exports = (context, req) => {
 
     getPullRequest(
         githubApiHeaders,
-        REPO_OWNER,
-        REPO_NAME,
+        TARGET_REPO_OWNER,
+        TARGET_REPO_NAME,
         pullRequestNumber,
         (pullRequest) => {
             // retrieve first block of creation block where user puts the linked issues
@@ -27,7 +27,7 @@ module.exports = (context, req) => {
             if (firstBlockOfCreationMessage) {
                 const linkedItemsNumbers = distinct(searchLinkedItemsNumbersInComment(firstBlockOfCreationMessage));
 
-                getIssueOrPullRequestLinks(githubApiHeaders, REPO_OWNER, REPO_NAME, linkedItemsNumbers, (results) => {
+                getIssueOrPullRequestLinks(githubApiHeaders, TARGET_REPO_OWNER, TARGET_REPO_NAME, linkedItemsNumbers, (results) => {
                     const issuesNumber = results
                         .filter(r => r.__typename === 'Issue')
                         .map(r => r.__typename === 'Issue' ? r.number : null)
@@ -40,7 +40,7 @@ module.exports = (context, req) => {
                     }
 
                     if (ACTIVATE_MUTATION) {
-                        getIssuesLabels(githubApiHeaders, REPO_OWNER, REPO_NAME, issuesNumber, (issuesWithLabels) => {
+                        getIssuesLabels(githubApiHeaders, TARGET_REPO_OWNER, TARGET_REPO_NAME, issuesNumber, (issuesWithLabels) => {
                             if (req.action === 'closed') {
                                 // filter issues which DOES already contain the label
                                 const issuesWithLabelsWithExpectedLabel =
@@ -49,7 +49,7 @@ module.exports = (context, req) => {
                                 // remove label 'PR in progress'
                                 issuesWithLabelsWithExpectedLabel.map(issueWithLabels => {
                                     const labels = distinct(issueWithLabels.labels.filter(label => label !== labelPRinProgress));
-                                    setLabelsForIssue(githubApiHeaders, REPO_OWNER, REPO_NAME, issueWithLabels.number, labels);
+                                    setLabelsForIssue(githubApiHeaders, TARGET_REPO_OWNER, TARGET_REPO_NAME, issueWithLabels.number, labels);
                                 });
                             }
                             if (req.action === 'opened' || req.action === 'reopened') {
@@ -60,7 +60,7 @@ module.exports = (context, req) => {
                                 // add label 'PR in progress'
                                 issuesWithLabelsWithoutExpectedLabel.map(issueWithLabels => {
                                     const labels = distinct(issueWithLabels.labels.concat([labelPRinProgress]));
-                                    setLabelsForIssue(githubApiHeaders, REPO_OWNER, REPO_NAME, issueWithLabels.number, labels);
+                                    setLabelsForIssue(githubApiHeaders, TARGET_REPO_OWNER, TARGET_REPO_NAME, issueWithLabels.number, labels);
                                 });
                             }
                         })

@@ -9,7 +9,7 @@ module.exports = function (context) {
         'User-Agent': 'github-bot-uwp-toolkit',
         'Authorization': 'token ' + constants_1.ACCESS_TOKEN
     };
-    github_1.getAllGitHubIssuesRecursivelyFilterWithLabels(githubApiHeaders, constants_1.REPO_OWNER, constants_1.REPO_NAME, null, ["pending-uservoice-creation"], function (issues) {
+    github_1.getAllGitHubIssuesRecursivelyFilterWithLabels(githubApiHeaders, constants_1.TARGET_REPO_OWNER, constants_1.TARGET_REPO_NAME, null, ["pending-uservoice-creation"], function (issues) {
         context.log("Total of " + issues.length + " issues pending uservoice creation.");
         context.log(issues);
         var issuesWithoutActivity = issues.filter(function (issue) {

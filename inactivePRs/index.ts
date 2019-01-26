@@ -2,7 +2,7 @@ import { getAllMilestones, getAllOpenPullRequests, commentGitHubPullRequest } fr
 import { containsExclusiveLabels, completeFunction } from '../shared/functions';
 import { PullRequest } from '../shared/models';
 import { addDays } from '../shared/utils';
-import { NUMBER_OF_DAYS_WITHOUT_ACTIVITY, ACCESS_TOKEN, REPO_OWNER, REPO_NAME, ACTIVATE_MUTATION } from '../shared/constants';
+import { NUMBER_OF_DAYS_WITHOUT_ACTIVITY, ACCESS_TOKEN, TARGET_REPO_OWNER, TARGET_REPO_NAME, ACTIVATE_MUTATION } from '../shared/constants';
 
 module.exports = (context) => {
     const githubApiHeaders = {
@@ -12,8 +12,8 @@ module.exports = (context) => {
 
     getAllMilestones(
         githubApiHeaders,
-        REPO_OWNER,
-        REPO_NAME,
+        TARGET_REPO_OWNER,
+        TARGET_REPO_NAME,
         (milestones) => {
             const currentMilestone = milestones
                 .filter(m => m.state === 'OPEN' && !!m.dueOn)
@@ -22,8 +22,8 @@ module.exports = (context) => {
 
             getAllOpenPullRequests(
                 githubApiHeaders,
-                REPO_OWNER,
-                REPO_NAME,
+                TARGET_REPO_OWNER,
+                TARGET_REPO_NAME,
                 (pullRequests) => {
                     const exclusiveLabels = [
                         'help wanted',
