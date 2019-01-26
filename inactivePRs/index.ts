@@ -92,10 +92,13 @@ const makeDecisions = (githubApiHeaders: any, pullRequests: PullRequest[]): Pull
 
     if (process.env.GITHUB_BOT_UWP_TOOLKIT_ACTIVATE_MUTATION) {
         decisions.forEach(d => {
+            const assigneesLogins = d.pullRequest.assignees.edges.map(edge => edge.node.login);
+            const loginOfUsersToAlert = assigneesLogins.concat([d.pullRequest.author.login]);
+
             commentGitHubPullRequest(
                 githubApiHeaders,
                 d.pullRequest.id,
-                `This PR seems inactive. @${d.pullRequest.author.login} Do you need help to complete this issue?`);
+                `This PR seems inactive. ${loginOfUsersToAlert.map(login => "@" + login).join(' ')} Do you need help to complete this issue?`);
         });
     }
 

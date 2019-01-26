@@ -58,7 +58,9 @@ var makeDecisions = function (githubApiHeaders, pullRequests) {
     });
     if (process.env.GITHUB_BOT_UWP_TOOLKIT_ACTIVATE_MUTATION) {
         decisions.forEach(function (d) {
-            github_1.commentGitHubPullRequest(githubApiHeaders, d.pullRequest.id, "This PR seems inactive. @" + d.pullRequest.author.login + " Do you need help to complete this issue?");
+            var assigneesLogins = d.pullRequest.assignees.edges.map(function (edge) { return edge.node.login; });
+            var loginOfUsersToAlert = assigneesLogins.concat([d.pullRequest.author.login]);
+            github_1.commentGitHubPullRequest(githubApiHeaders, d.pullRequest.id, "This PR seems inactive. " + loginOfUsersToAlert.map(function (login) { return "@" + login; }).join(' ') + " Do you need help to complete this issue?");
         });
     }
     return decisions;

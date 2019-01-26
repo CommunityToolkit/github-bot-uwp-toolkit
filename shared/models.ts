@@ -122,6 +122,14 @@ export type PullRequest = {
         }[];
     };
     milestone: MilestoneWithNumberAndState | undefined;
+    assignees: {
+        edges: {
+            node: {
+                id: string,
+                login: string
+            }
+        }[];
+    };
 }
 
 export type IssueWithLabels = {

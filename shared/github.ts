@@ -259,6 +259,14 @@ const getAllOpenPullRequestsQuery = (repoOwner: string, repoName: string) => {
                 },
                 milestone {
                   number
+                },
+                assignees(first: 10) {
+                  edges {
+                    node {
+                      id,
+                      login
+                    }
+                  }
                 }
               }
             }
