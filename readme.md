@@ -51,7 +51,7 @@ These environment variables should be set to launch the bot.
 
 | Variable | Description | Default value |
 |-|-|-|
-| GITHUB_BOT_LOGIN               | Login of the GitHub account of the bot | uwptoolkitbot |
+| GITHUB_BOT_LOGIN               | Login of the GitHub account of the bot | windowstoolkitbot |
 | GITHUB_BOT_ACCESS_TOKEN           | Personal Access Token used to retrieve data from the GitHub API |  |
 | GITHUB_BOT_TARGET_REPO_OWNER             | Target Repository owner | windows-toolkit |
 | GITHUB_BOT_TARGET_REPO_NAME              | Target Repository name | WindowsCommunityToolkit |

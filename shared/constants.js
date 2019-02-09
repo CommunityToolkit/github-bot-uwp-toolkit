@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.BOT_LOGIN = process.env.GITHUB_BOT_LOGIN || 'uwptoolkitbot';
+exports.BOT_LOGIN = process.env.GITHUB_BOT_LOGIN || 'windowstoolkitbot';
 exports.ACCESS_TOKEN = process.env.GITHUB_BOT_ACCESS_TOKEN;
 exports.TARGET_REPO_OWNER = process.env.GITHUB_BOT_TARGET_REPO_OWNER || 'windows-toolkit';
 exports.TARGET_REPO_NAME = process.env.GITHUB_BOT_TARGET_REPO_NAME || 'WindowsCommunityToolkit';
